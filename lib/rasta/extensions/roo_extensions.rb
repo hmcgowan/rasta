@@ -1,4 +1,4 @@
-require 'cgi'
+# THIS IS ONLY TEMPORARY. REFACTORING AND ADDING FEATURES TO ROO
 
 # Google does not support font information
 # right now so fake out roo to return
@@ -271,6 +271,7 @@ class Excelx < GenericSpreadsheet
 end
 
 class Openoffice < GenericSpreadsheet
+  require 'cgi'
   alias :old_initialize :initialize
   def initialize(filename, packed=nil, file_warning=:error) 
     old_initialize(filename, packed=nil, file_warning=:error)
@@ -361,8 +362,8 @@ class Openoffice < GenericSpreadsheet
                                       str_v = str_v + child.to_s #.text
                                     }
                                   end
-                                  str_v.gsub!(/&apos;/,"'")
-                                  str_v = CGI.unescapeHTML()
+                                  str_v.gsub!(/&apos;/,"'")  # special case not supported by unescapeHTML
+                                  str_v = CGI.unescapeHTML(str_v)
                                 end # == 'p'
                               end
                             elsif vt == 'time'
