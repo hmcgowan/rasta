@@ -1,3 +1,5 @@
+require 'cgi'
+
 # Google does not support font information
 # right now so fake out roo to return
 # something that looks like a column fixture
