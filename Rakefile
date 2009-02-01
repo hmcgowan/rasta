@@ -1,43 +1,36 @@
-$:.unshift(File.join(File.dirname(__FILE__), 'lib'))
+$:.unshift('lib')
  
-require 'rake/rdoctask'
 require 'spec/rake/spectask'
 require 'spec/rake/verify_rcov'
 
-PKG_FILES = FileList[
-  'README',
-  'LICENSE',
-  'lib/**/*', 
-  'examples/**/*',
-  'spec/**/*',
-  'bin/*'
-]
 RCOV_DIR = 'rcov'
 
 begin
   require 'jeweler'
   Jeweler::Tasks.new do |s|
     s.name               = 'rasta'
-    s.files              = PKG_FILES.to_a
+    s.rubyforge_project  = 'rasta'
     s.platform           = Gem::Platform::CURRENT
     s.email              = 'hugh_mcgowan@yahoo.com' 
     s.homepage           = "http://github.com/hmcgowan/rasta"
     s.summary            = "Rasta"
     s.description        = <<-EOF
-        Rasta is a keyword-driven test framework using spreadsheets
+        Rasta is a keyword-driven test framework based on Roo, using spreadsheets
         to drive test automation. It is loosely based on FIT - tables
         define test parameters which call your test fixture. As the
         test runs, the spreadsheet is updated with test results.
     EOF
-    s.bindir             = 'bin'
-    s.executables       << 'rasta'
-    s.default_executable = 'rasta'
     s.authors            = ['Hugh McGowan']
-    s.rubyforge_project  = "rasta"
 
+    s.executables        = ['rasta']
+    s.files              =  FileList[ "{bin,lib,spec}/**/*"]
     s.add_dependency "rspec", [">= 1.1.11"]
     s.add_dependency "roo", [">= 1.1.11"]
     s.add_dependency "user-choices", [">= 1.1.6"]
+
+    s.has_rdoc = true
+    s.extra_rdoc_files = ["README", "LICENSE"]
+    s.rdoc_options = ["--main","README"]
   end
 rescue LoadError
   puts "Jeweler not available. Install it with: sudo gem install technicalpickles-jeweler -s http://gems.github.com"
@@ -46,14 +39,6 @@ end
 Spec::Rake::SpecTask.new('test') do |t|
   t.libs << File.join(File.dirname(__FILE__), 'lib')
   t.spec_files = FileList['spec/**/*_spec.rb']
-end
-
-Rake::RDocTask.new do |rdoc|
-  rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'Rasta'
-  rdoc.options << '--line-numbers' << '--inline-source'
-  rdoc.rdoc_files.include('README')
-  rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
 Spec::Rake::SpecTask.new(:rcov) do |t|
