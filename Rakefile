@@ -15,8 +15,8 @@ begin
     s.homepage           = "http://github.com/hmcgowan/rasta"
     s.summary            = "Rasta"
     s.description        = <<-EOF
-        Rasta is a keyword-driven test framework based on Roo, using spreadsheets
-        to drive test automation. It is loosely based on FIT - tables
+        Rasta is a keyword-driven test framework using spreadsheets
+        to drive test automation. It is also loosely based on FIT - tables
         define test parameters which call your test fixture. As the
         test runs, the spreadsheet is updated with test results.
     EOF

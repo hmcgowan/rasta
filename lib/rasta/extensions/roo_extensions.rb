@@ -1,4 +1,8 @@
 # THIS IS ONLY TEMPORARY. REFACTORING AND ADDING FEATURES TO ROO
+# The font information here is also incorrect. I'm getting the font_no 
+# but that needs to be mapped properly to the font records to get the
+# correct font information. It's basically hard-coded that it works for the
+# example but will fail on any other spreadsheet 
 
 # Google does not support font information
 # right now so fake out roo to return
@@ -138,138 +142,10 @@ end
 
 
 class Excelx < GenericSpreadsheet
-  alias :old_initialize :initialize
-  def initialize(filename, packed = nil, file_warning = :error)
-    old_initialize(filename, packed = nil, file_warning = :error)
-    @font_no = Hash.new
-  end
-  class Format
-    def initialize(font)
-      @font = font
-    end
-    def bold?
-      @font == 6 || @font == 9 ? true : false
-    end
-    def italic?
-      @font == 8 || @font == 9 ? true : false
-    end
-  end
   
-  def cellformat(row,col,sheet=nil)
-    sheet = @default_sheet unless sheet
-    read_cells(sheet) unless @cells_read[sheet]
-    row,col = normalize(row,col)
-    begin
-      return Format.new(@font_no[sheet][[row,col]])
-    rescue
-      puts "Error in sheet #{sheet}, row #{row}, col #{col}"
-      raise
-    end
-  end
+  attr_accessor :styles_doc
   
-  alias :old_set_cell_values :set_cell_values
-  def set_cell_values(sheet,x,y,i,v,vt,formula,tr,str_v,
-    excelx_type=nil,excelx_value=nil, s_attribute=nil)
-    key = [y,x+i]
-    @font_no[sheet] = {} unless @font_no[sheet]
-    @font_no[sheet][key] = font_no  if font_no    
-   old_set_cell_values(sheet,x,y,i,v,vt,formula,tr,str_v, excelx_type=nil,excelx_value=nil, s_attribute=nil)
-  end
-
-  def read_cells(sheet=nil)
-    sheet = @default_sheet unless sheet
-    sheet_found = false
-    raise ArgumentError, "Error: sheet '#{sheet||'nil'}' not valid" if @default_sheet == nil and sheet==nil
-    raise RangeError unless self.sheets.include? sheet
-    n = self.sheets.index(sheet)
-    @sheet_doc[n].each_element do |worksheet|
-      worksheet.each_element do |elem|
-        if elem.name == 'sheetData'
-          elem.each_element do |sheetdata|
-            if sheetdata.name == 'row'
-              sheetdata.each_element do |row|
-                if row.name == 'c'
-                  if row.attributes['t'] == 's'
-                    tmp_type = :shared
-                  else
-                    s_attribute = row.attributes['s']
-                    format = attribute2format(s_attribute)
-                    tmp_type = format2type(format)
-                  end
-                  formula = nil
-                  row.each_element do |cell|
-#                    puts "cell.name: #{cell.name}" if cell.text.include? "22606.5120"
-#                    puts "cell.text: #{cell.text}" if cell.text.include? "22606.5120"
-                    if cell.name == 'f'
-                      formula = cell.text
-                    end
-                    if cell.name == 'v'
-                      #puts "tmp_type: #{tmp_type}" if cell.text.include? "22606.5120"
-                      #puts cell.name
-                      if tmp_type == :time or tmp_type == :datetime #2008-07-26
-                        #p cell.text
-                       # p cell.text.to_f if cell.text.include? "22606.5120"
-                        if cell.text.to_f >= 1.0 # 2008-07-26
-                        #  puts ">= 1.0" if cell.text.include? "22606.5120"
-                         # puts "cell.text.to_f: #{cell.text.to_f}" if cell.text.include? "22606.5120"
-                          #puts "cell.text.to_f.floor: #{cell.text.to_f.floor}" if cell.text.include? "22606.5120"
-                          if (cell.text.to_f - cell.text.to_f.floor).abs > 0.000001 #TODO: 
-                           # puts "abs ist groesser"  if cell.text.include? "22606.5120"
-                            # @cell[sheet][key] = DateTime.parse(tr.attributes['date-value'])
-                            tmp_type = :datetime
-                            
-                          else
-                            #puts ":date"
-                            tmp_type = :date # 2008-07-26
-                          end
-                        else
-                          #puts "<1.0"
-                        end # 2008-07-26
-                      end # 2008-07-26
-                      excelx_type = [:numeric_or_formula,format]
-                      excelx_value = cell.text
-                      if tmp_type == :shared
-                        vt = :string
-                        str_v = @shared_table[cell.text.to_i]
-                        excelx_type = :string
-                      elsif tmp_type == :date
-                        vt = :date
-                        v = cell.text
-                      elsif tmp_type == :time
-                        vt = :time
-                        v = cell.text
-                      elsif tmp_type == :datetime
-                        vt = :datetime
-                        v = cell.text
-                      elsif tmp_type == :formula
-                        vt = :formula
-                        v = cell.text.to_f #TODO: !!!!
-                      else
-                        vt = :float
-                        v = cell.text
-                      end
-                      #puts "vt: #{vt}" if cell.text.include? "22606.5120"
-                      x,y = split_coordinate(row.attributes['r'])
-                      tr=nil #TODO: ???s
-                      font_no = cell.format.font_no
-                      set_cell_values(sheet,x,y,0,v,vt,formula,tr,str_v,font_no,excelx_type,excelx_value,s_attribute)
-                    end
-                  end
-                end
-              end
-            end
-          end
-        end
-      end
-    end
-    sheet_found = true #TODO:
-    if !sheet_found
-      raise RangeError
-    end
-    @cells_read[sheet] = true
-  end
 end
-
 class Openoffice < GenericSpreadsheet
   require 'cgi'
   alias :old_initialize :initialize

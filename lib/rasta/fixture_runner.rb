@@ -27,14 +27,14 @@ module Rasta
       Rasta::Spreadsheet::Bookmark.read(@options)
       @loaded_classes = load_test_fixtures
 # Find out the right place to put this
-html = Rasta::HTML.new
+#html = Rasta::HTML.new
       roo.sheets.each do |sheet| 
         next if sheet =~ /^#/
         next if !Rasta::Spreadsheet::Bookmark.found_page?(sheet)
         roo.default_sheet = sheet
 
-html.add_tab(roo)
-html.write(@options[:results_path] + '/' + File.basename(@options[:spreadsheet]) + '.html')
+#html.add_tab(roo)
+#html.write(@options[:results_path] + '/' + File.basename(@options[:spreadsheet]) + '.html')
         run_test_fixture(roo)
         return if Rasta::Spreadsheet::Bookmark.exceeded_max_records?
      end
