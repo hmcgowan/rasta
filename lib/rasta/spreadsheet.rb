@@ -57,12 +57,12 @@ module Rasta
         @style = nil
         (1..@oo.last_row).each do |row|
           (1..@oo.last_column).each do |col|
-            if @oo.cellformat(row,col).bold?
-              if @oo.cellformat(row+1, col).bold?
+            if @oo.bold?(row,col)
+              if @oo.bold?(row+1, col)
                 @style = :col
                 @header_index = col
                 return @oo.column(col).compact
-              elsif @oo.cellformat(row, col+1).bold?
+              elsif @oo.bold?(row, col+1)
                 @style = :row
                 @header_index = row
                 return  @oo.row(row).compact
