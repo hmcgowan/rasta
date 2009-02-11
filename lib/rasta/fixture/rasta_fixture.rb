@@ -4,7 +4,7 @@ module Rasta
   module Fixture
     module RastaFixture 
       include Rasta::Fixture::BaseFixture
-      attr_accessor :pending, :description
+      attr_accessor :pending, :description, :comment
       
       def generate_rspec_tests
         @metrics.reset_page_counts
