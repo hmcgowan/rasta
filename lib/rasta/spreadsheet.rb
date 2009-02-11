@@ -1,10 +1,11 @@
 module Rasta
   module Spreadsheet
-    ARRAY        = /\A\s*\[.+\]\s*\Z/ms
-    HASH         = /\A\s*\{.+\}\s*\Z/ms
-    BOOL         = /\A\s*(true|false)\s*\Z/i
-    REGEXP       = /\A\s*(\/.+\/)\s*\Z/ms
-    NUMBER       = /\A\s*-?\d+\.??\d*?\s*\Z/
+    ARRAY         = /\A\s*\[.+\]\s*\Z/ms
+    HASH          = /\A\s*\{.+\}\s*\Z/ms
+    BOOL          = /\A\s*(true|false)\s*\Z/i
+    REGEXP        = /\A\s*(\/.+\/)\s*\Z/ms
+    NUMBER        = /\A\s*-?\d+\.??\d*?\s*\Z/
+    METHOD_PARENS = /\(\)$/
     
     def records(oo)
       Records.new(oo)
@@ -61,11 +62,11 @@ module Rasta
               if @oo.bold?(row+1, col)
                 @style = :col
                 @header_index = col
-                return @oo.column(col).compact
+                return @oo.column(col).compact.map { |x| x.gsub(METHOD_PARENS,'') }
               elsif @oo.bold?(row, col+1)
                 @style = :row
                 @header_index = row
-                return  @oo.row(row).compact
+                return  @oo.row(row).compact.map { |x| x.gsub(METHOD_PARENS,'') }
               end
             end
           end     
