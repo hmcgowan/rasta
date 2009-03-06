@@ -10,7 +10,7 @@ begin
   Jeweler::Tasks.new do |s|
     s.name               = 'rasta'
     s.rubyforge_project  = 'rasta'
-    s.platform           = Gem::Platform::CURRENT
+    s.platform           = Gem::Platform::RUBY
     s.email              = 'hugh_mcgowan@yahoo.com' 
     s.homepage           = "http://github.com/hmcgowan/rasta"
     s.summary            = "Rasta"

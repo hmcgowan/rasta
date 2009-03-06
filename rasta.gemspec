@@ -3,13 +3,12 @@
 Gem::Specification.new do |s|
   s.name = %q{rasta}
   s.version = "1.0.0"
-  s.platform = %q{universal-darwin-9}
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Hugh McGowan"]
-  s.date = %q{2009-01-31}
+  s.date = %q{2009-03-01}
   s.default_executable = %q{rasta}
-  s.description = %q{Rasta is a keyword-driven test framework based on Roo, using spreadsheets to drive test automation. It is loosely based on FIT - tables define test parameters which call your test fixture. As the test runs, the spreadsheet is updated with test results.}
+  s.description = %q{Rasta is a keyword-driven test framework using spreadsheets to drive test automation. It is also loosely based on FIT - tables define test parameters which call your test fixture. As the test runs, the spreadsheet is updated with test results.}
   s.email = %q{hugh_mcgowan@yahoo.com}
   s.executables = ["rasta"]
   s.extra_rdoc_files = ["README", "LICENSE"]
