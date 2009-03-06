@@ -6,9 +6,11 @@ module Rasta
     REGEXP        = /\A\s*(\/.+\/)\s*\Z/ms
     NUMBER        = /\A\s*-?\d+\.??\d*?\s*\Z/
     METHOD_PARENS = /\(\)$/
+
+    class BookmarkError < RuntimeError; end
     
-    def records(oo)
-      Records.new(oo)
+    def records(oo, opts)
+      Records.new(oo, opts)
     end
     
     class Record
@@ -26,9 +28,10 @@ module Rasta
     end
     
     class Records
-      def initialize(oo)
+      def initialize(oo, opts)
         @oo = oo
-        Bookmark.page_count += 1
+        @bookmark = Bookmark.new(opts)
+        @bookmark.page_count += 1
       end
       
       def each(&block)
@@ -36,16 +39,16 @@ module Rasta
         case @style
         when :row
           ((@header_index + 1)..@oo.last_row).each do |index|
-            next if !Bookmark.found_record?(index)
-            Bookmark.record_count += 1
-            return if Bookmark.exceeded_max_records?
+            next if !@bookmark.found_record?(index)
+            @bookmark.record_count += 1
+            return if @bookmark.exceeded_max_records?
             yield Record.new(@headers, values(index))
           end
         when :col
           ((@header_index + 1)..@oo.last_column).each do |index|
-            next if !Bookmark.found_record?(column_name(index))
-            Bookmark.record_count += 1
-            return if Bookmark.exceeded_max_records?
+            next if !@bookmark.found_record?(column_name(index))
+            @bookmark.record_count += 1
+            return if @bookmark.exceeded_max_records?
             yield Record.new(@headers, values(index))
           end
         else 
@@ -58,12 +61,12 @@ module Rasta
         @style = nil
         (1..@oo.last_row).each do |row|
           (1..@oo.last_column).each do |col|
-            if @oo.bold?(row,col)
-              if @oo.bold?(row+1, col)
+            if @oo.font(row,col).bold?
+              if @oo.font(row+1, col).bold?
                 @style = :col
                 @header_index = col
                 return @oo.column(col).compact.map { |x| x.gsub(METHOD_PARENS,'') }
-              elsif @oo.bold?(row, col+1)
+              elsif @oo.font(row, col+1).bold?
                 @style = :row
                 @header_index = row
                 return  @oo.row(row).compact.map { |x| x.gsub(METHOD_PARENS,'') }
@@ -107,58 +110,58 @@ module Rasta
       end
     end
     
-    
-    
     class Bookmark
+      attr_accessor :page_count, :record_count, :continue
 
-      class << self
-        attr_accessor :page_count, :record_count, :continue
-        
-        def found_page?(page)
-          return true if @found_bookmark_page
-          @found_bookmark_page = true if page == @bookmark_page 
-          @found_bookmark_page
-        end
-        
-        def found_record?(record)
-          return true if @found_bookmark_record 
-          @found_bookmark_record = true if record == @bookmark_record
-          @found_bookmark_record
-        end
-        
-        def exceeded_max_records?
-          return false if @max_record_count == 0 and @max_page_count == 0
-          return true if (@record_count > @max_record_count) and @max_record_count > 0
-          return true if (@page_count > @max_page_count) and @max_page_count > 0
-          return false
-        end
+      def initialize(options = {})
+        @continue = false
+        @page_count = 0
+        @record_count = 0
+        @max_page_count = options[:pages] || 0
+        @max_record_count = options[:records] || 0
+        read(options)
+      end
       
-        def read(options)
-          @continue = false
-          @page_count = 0
-          @record_count = 0
-          @max_page_count = options[:pages] || 0
-          @max_record_count = options[:records] || 0
-          if options[:continue]
-            @continue = true 
-            @bookmark_page, @bookmark_record = parse_bookmark(options[:continue])
-            @found_bookmark_record = true unless @bookmark_record
-          else
-            @found_bookmark_page = true
-            @found_bookmark_record = true
-          end  
-        end
-  
-        def parse_bookmark(name)
-          name =~ /([^\[]+)(\[(\S+)\])?/
+      def found_page?(page)
+        return true if @found_bookmark_page
+        @found_bookmark_page = true if page == @bookmark_page 
+        @found_bookmark_page || false
+      end
+      
+      def found_record?(record)
+        return true if @found_bookmark_record 
+        @found_bookmark_record = true if record == @bookmark_record
+        @found_bookmark_record || false
+      end
+      
+      def exceeded_max_records?
+        return false if @max_record_count == 0 and @max_page_count == 0
+        return true if (@record_count > @max_record_count) and @max_record_count > 0
+        return true if (@page_count > @max_page_count) and @max_page_count > 0
+        return false
+      end
+    
+      def read(options)
+        if options[:continue]
+          @continue = true 
+          @bookmark_page, @bookmark_record = parse_bookmark(options[:continue])
+          @found_bookmark_record = true unless @bookmark_record
+        else
+          @found_bookmark_page = true
+          @found_bookmark_record = true
+        end  
+      end
+
+      def parse_bookmark(name)
+        if name =~ /^([^\[]+)(\[(\S+)\])?/
           pagename = $1
           recordid = $3.upcase if $3
           return pagename, recordid
-        end
+        else
+          raise BookmarkError, "Invalid bookmark '#{name}'" 
+        end  
       end
-
     end
-    
-
+   
   end  
 end

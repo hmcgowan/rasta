@@ -12,7 +12,7 @@ module Rasta
         initial_failure_count = current_failure_count
         try(:before_all)
         
-        records(@oo).each do |record|
+        records(@oo, @options).each do |record|
           @metrics.reset_record_counts
           @current_record = record
           @metrics.inc(:record_count)

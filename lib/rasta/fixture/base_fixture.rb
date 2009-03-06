@@ -4,8 +4,9 @@ module Rasta
     module BaseFixture
       include Rasta::Spreadsheet
  
-      def initialize_test_fixture(roo_reference)
+      def initialize_test_fixture(roo_reference, options)
         @oo = roo_reference
+        @options = options
         @metrics = Metrics.new
       end
        
