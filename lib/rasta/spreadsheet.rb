@@ -1,33 +1,61 @@
 module Rasta
   module Spreadsheet
-    ARRAY         = /\A\s*\[.+\]\s*\Z/ms
-    HASH          = /\A\s*\{.+\}\s*\Z/ms
-    BOOL          = /\A\s*(true|false)\s*\Z/i
-    REGEXP        = /\A\s*(\/.+\/)\s*\Z/ms
-    NUMBER        = /\A\s*-?\d+\.??\d*?\s*\Z/
-    METHOD_PARENS = /\(\)$/
-
+    
     class BookmarkError < RuntimeError; end
+    class RecordParseError < RuntimeError; end
+
+    ARRAY  = /\A\s*\[.+\]\s*\Z/ms
+    HASH   = /\A\s*\{.+\}\s*\Z/ms
+    BOOL   = /\A\s*(true|false)\s*\Z/i
+    REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
+    NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
+    PARENS = /\(\)$/
     
     def records(oo, opts)
       Records.new(oo, opts)
     end
+
+    # Delegate to roo for mapping col number to letters
+    def column_name(x)
+      GenericSpreadsheet.number_to_letter(x)
+    end
+    
+    # Given a string, find the closest Ruby data type
+    def string_to_datatype(x)
+      x.strip! if x.class == String
+      case x
+      when ARRAY, HASH, BOOL, REGEXP
+        eval(x)
+      when NUMBER
+        # if the number starts with 0 and not preceded
+        # by a decimal then treat as a string. This 
+        # makes sure things like zip codes are properly 
+        # handled. Not sure if there's a better way.
+        # If not that case, then eval to convert to the proper
+        # number datatype
+        x =~ /^0\d/ ? x : eval(x)  
+      else
+        x
+      end
+    end     
     
     class Record
-      attr_accessor :headers, :values
+      attr_accessor :header, :values
       
-      def initialize(header_values, cell_values)
-        @headers = header_values
+      def initialize(header, cell_values)
+        @header = header
         @values = cell_values
       end
 
       def [](x)
-        @values[@headers.index(x)]
+        @values[@header.index(x)]
       end
       
     end
     
     class Records
+      attr_reader :style
+      
       def initialize(oo, opts)
         @oo = oo
         @bookmark = Bookmark.new(opts)
@@ -35,48 +63,31 @@ module Rasta
       end
       
       def each(&block)
-        @headers ||= locate_headers
         case @style
         when :row
           ((@header_index + 1)..@oo.last_row).each do |index|
             next if !@bookmark.found_record?(index)
             @bookmark.record_count += 1
             return if @bookmark.exceeded_max_records?
-            yield Record.new(@headers, values(index))
+            yield Record.new(header, values(index))
           end
         when :col
           ((@header_index + 1)..@oo.last_column).each do |index|
             next if !@bookmark.found_record?(column_name(index))
             @bookmark.record_count += 1
             return if @bookmark.exceeded_max_records?
-            yield Record.new(@headers, values(index))
+            yield Record.new(header, values(index))
           end
         else 
           raise RuntimeError, "No style set for #{@oo.default_sheet}"
         end
       end
       
-      def locate_headers
-        @header_index = 0
-        @style = nil
-        (1..@oo.last_row).each do |row|
-          (1..@oo.last_column).each do |col|
-            if @oo.font(row,col).bold?
-              if @oo.font(row+1, col).bold?
-                @style = :col
-                @header_index = col
-                return @oo.column(col).compact.map { |x| x.gsub(METHOD_PARENS,'') }
-              elsif @oo.font(row, col+1).bold?
-                @style = :row
-                @header_index = row
-                return  @oo.row(row).compact.map { |x| x.gsub(METHOD_PARENS,'') }
-              end
-            end
-          end     
-        end
-        raise RuntimeError, "Unable to locate header row for #{@oo.default_sheet}" unless @style && @header_index > 0
-      end    
-      
+      def header
+        locate_header unless @header_values
+        @header_values
+      end
+
       def values(x)
         case @style
         when :row
@@ -86,28 +97,45 @@ module Rasta
         end
         cell_values = cell_values[@header_index-1..cell_values.size-1]
         cell_values.map! do |cell| 
-          cell = convert_to_datatype(cell) 
+          cell = string_to_datatype(cell) 
         end
         cell_values
       end
       
-      def convert_to_datatype(x)
-        x.strip! if x.class == String
-        case x
-        when ARRAY, HASH, BOOL, REGEXP
-          eval(x)
-        when NUMBER
-          eval(x) unless x =~ /^0\d/ 
-        else
-          x
+      def locate_header
+        @header_index = 0
+        @style = nil
+        if @oo.last_row && @oo.last_column
+          (1..@oo.last_row).each do |row|
+            (1..@oo.last_column).each do |col|
+              next if @oo.empty?(row,col)
+              return if found_header?(row,col)
+            end     
+          end
         end
-      end     
+        raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @style && @header_index > 0
+      end    
+      private :locate_header
       
-      # Convert a column index to column letter
-      # using roo's method
-      def column_name(x)
-        GenericSpreadsheet.number_to_letter(x)
+      def found_header?(row, col)
+        return true if @header_values
+        if @oo.font(row,col).bold?
+          if @oo.font(row, col+1).bold?
+            @style = :col
+            @header_index = row
+            @header_values = @oo.row(row).compact.map { |x| x.gsub(PARENS,'') }
+            return true
+          elsif @oo.font(row+1, col).bold?
+            @style = :row
+            @header_index = col
+            @header_values = @oo.column(col).compact.map { |x| x.gsub(PARENS,'') }
+            return true
+          end
+        end
+        return false
       end
+      private :found_header?
+      
     end
     
     class Bookmark
