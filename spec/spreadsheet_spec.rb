@@ -29,22 +29,18 @@ describe 'Locate Column Headers' do
   it 'should be able to get col headers when flush' do
     @oo.default_sheet = 'col_flush'
     @records.header.should == @header
-    @records.style.should == :col
   end
   it 'should be able to get col headers with preceding empty column' do
     @oo.default_sheet = 'col_empty_col'
     @records.header.should == @header
-    @records.style.should == :col
   end
   it 'should be able to get col headers with preceding empty row' do
     @oo.default_sheet = 'col_empty_row'
     @records.header.should == @header
-    @records.style.should == :col
   end
   it 'should be able to get col headers with preceding empty row and column' do
     @oo.default_sheet = 'col_empty_row_col'
     @records.header.should == @header
-    @records.style.should == :col
   end
 end
 
@@ -54,22 +50,18 @@ describe 'Locate Row Headers' do
   it 'should be able to get row headers when flush' do
      @oo.default_sheet = 'row_flush'
      @records.header.should == @header
-     @records.style.should == :row
    end
    it 'should be able to get row headers with preceding empty row' do
      @oo.default_sheet = 'row_empty_row'
      @records.header.should == @header
-     @records.style.should == :row
    end
    it 'should be able to get row headers with preceding empty col' do
      @oo.default_sheet = 'row_empty_col'
      @records.header.should == @header
-     @records.style.should == :row
    end
    it 'should be able to get row headers with preceding empty row and column' do
      @oo.default_sheet = 'row_empty_row_col'
      @records.header.should == @header
-     @records.style.should == :row
    end
 end
 
@@ -81,19 +73,12 @@ describe 'Handle Header Exceptions' do
     lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
   end
   it 'should throw an error on sheet without bold cells' do
-    @oo.default_sheet = 'no_headers'
+    @oo.default_sheet = 'no_header'
     lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
   end
-end
-
-describe 'Delegate to Roo for Column Number Mapping' do
-  it_should_behave_like 'rasta_spreadsheet'
-  
-  it 'should map column numbers correctly for single letter' do 
-    column_name(1).should == 'A'
-  end
-  it 'should map column numbers correctly for multiple letters' do 
-    column_name(28).should == 'AB'
+  it 'should throw an error on sheet without valid header cells' do
+    @oo.default_sheet = 'invalid_header'
+    lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
   end
 end
 
@@ -165,13 +150,11 @@ describe 'Small datasets' do
   it 'should be able to parse a sheet with a single col record' do
     @oo.default_sheet = 'single_cell_col'
     @records.header.should == ['number']
-    @records.style.should == :col
     @records.values(2).should == [1]
   end
   it 'should be able to parse a sheet with a single row record' do
     @oo.default_sheet = 'single_cell_row'
     @records.header.should == ['number']
-    @records.style.should == :row
     @records.values(2).should == [1]
   end
   it 'should raise an exception if the row/col does not exist' do
@@ -186,11 +169,15 @@ describe 'Iterate over records' do
 
   it 'should be able to get all of the records for a col record' do
     @oo.default_sheet = 'col_flush'
-    @records.dump.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
     @oo.default_sheet = 'row_flush'
-    @records.dump.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
+end
+
+describe 'Spreadsheet comments' do
+  it 'should ignore comments'
 end
 

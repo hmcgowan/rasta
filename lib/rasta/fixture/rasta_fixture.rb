@@ -18,8 +18,8 @@ module Rasta
           @metrics.inc(:record_count)
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
           try(:before_each)
-          record.header.each do |header_value|
-            call_test_fixture(header_value, record[header_value])
+          record.header.each do |header|
+            call_test_fixture(header, record[header])
           end 
           try(:after_each)
           @test_fixture = self
@@ -110,7 +110,7 @@ module Rasta
           rescue => error_message
             # If the method gets an error, re-raise the error
             # in the context of rspec so the results pick it up
-            describe "#{@test_fixture.class}[#{@current_record.to_s}] #{method.to_s}()" do
+            describe "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()" do
               it "should not throw an exception" do
                 lambda{raise error_message}.should_not raise_error
               end

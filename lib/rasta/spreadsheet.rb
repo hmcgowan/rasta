@@ -15,11 +15,6 @@ module Rasta
       REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
       NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
 
-      # Delegate to roo for mapping col number to letters
-      def column_name(x)
-        GenericSpreadsheet.number_to_letter(x)
-      end
-    
       # Given a string, find the closest Ruby data type
       def string_to_datatype(x)
         x.strip! if x.class == String
@@ -31,8 +26,7 @@ module Rasta
           # by a decimal then treat as a string. This 
           # makes sure things like zip codes are properly 
           # handled. Not sure if there's a better way.
-          # If not that case, then eval to convert to the proper
-          # number datatype
+          # Otherwise eval to convert to the proper number datatype
           x =~ /^0\d/ ? x : eval(x)  
         else
           x
@@ -40,26 +34,17 @@ module Rasta
       end   
     end  
     
-    # A single record which represents a row or column
-    # of the spreadsheet wih the header values for that record
     class Record
-      attr_accessor :header, :values
-      
-      def initialize(header, cell_values)
-        @header = header
-        @values = cell_values
-      end
+      attr_accessor :name, :header, :values
 
+      # return the cell value at a given header
       def [](x)
         @values[@header.index(x)]
       end
-      
     end
     
-    # Access to the records of a given spreadsheet
     class Records
       include Utils
-      attr_reader :style
 
       def initialize(oo, opts)
         @oo = oo
@@ -67,61 +52,64 @@ module Rasta
         @bookmark.page_count += 1
       end
       
-      def each(&block)
-        locate_header
-        case @style
-        when :row
-          ((@header_index + 1)..@oo.last_column).each do |index|
-            next if !@bookmark.found_record?(index)
-            @bookmark.record_count += 1
-            return if @bookmark.exceeded_max_records?
-            yield Record.new(header, values(index))
-          end
-        when :col
-          ((@header_index + 1)..@oo.last_row).each do |index|
-            next if !@bookmark.found_record?(column_name(index))
-            @bookmark.record_count += 1
-            return if @bookmark.exceeded_max_records?
-            yield Record.new(header, values(index))
-          end
-        else 
-          raise RuntimeError, "No style set for #{@oo.default_sheet}"
-        end
-      end
-      
       def header
         locate_header 
         @header_values
       end
 
-      # Return the values for a given row or col
-      def values(x)
-        locate_header
-        cell_values = []
-        case @style
-        when :row
-          cell_values = @oo.column(x)
-        when :col
-          cell_values = @oo.row(x)
+      def each(&block)
+        (@first_record..@last_record).each do |index|
+          next if !@bookmark.found_record?(index)
+          @bookmark.record_count += 1
+          return if @bookmark.exceeded_max_records?
+          record = Record.new
+          record.name = record_name(index)
+          record.header = header
+          record.values = values(index)
+          yield record
         end
-        raise RecordParseError, "No record exists at #{@style} #{x}" if cell_values.compact == [] 
-        cell_values.map! do |cell| 
-          cell = string_to_datatype(cell) 
-        end
-        cell_values
       end
-      
-      def dump
+
+      def to_a
         result = []
         result << header
-        self.each do |record|
-          result << record.values
-        end
+        self.each { |record| result << record.values }
         result
       end
       
-      # Find the header by parsing the spreadsheet and auto-detecting
-      # if it's a row or column fixture layout. 
+      def values(x)
+        locate_header
+        cell_values = []
+        cell_values = @oo.send(@oo_record_method_name, x)  # @oo.row(x) or @oo.column(x)
+        raise RecordParseError, "No record exists at index #{x}" if cell_values.compact == [] 
+        cell_values.map! { |cell| cell = string_to_datatype(cell) } 
+        cell_values
+      end
+      
+      def record_name(x)
+        @oo_record_method_name == :row ? x : GenericSpreadsheet.number_to_letter(x)
+      end
+      private :record_name
+      
+      def reset_header
+        @header_values= nil
+        @current_sheet = @oo.default_sheet
+      end
+      private :reset_header
+      
+      # Get the header values and set the first and last record indexes
+      def read_header(type, index)
+        @oo_record_method_name = type
+        @header_values = @oo.send(type, index)
+        @header_values.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
+        @header_values.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
+        @first_record = index + 1
+        @last_record = @oo.send("last_" + type.to_s)
+      end
+      private :read_header
+
+      # Find the header by scanning the spreadsheet and
+      # testing each cell until we've found the header
       def locate_header
         return if (@oo.default_sheet == @current_sheet) && @header_values
         reset_header
@@ -133,35 +121,40 @@ module Rasta
             end     
           end
         end
-        raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @style && @header_index > 0
+        raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @header_values
       end    
       private :locate_header
       
-      # If we've detected that we're on a new sheet, 
-      # reset the internal state
-      def reset_header
-        @style = nil
-        @header_index = 0
-        @header_values= nil
-        @current_sheet = @oo.default_sheet
-      end
-      private :reset_header
-      
       def found_header?(row, col)
         return true if @header_values
-        method_parens = /\(\)$/ # we're stripping out () if it's used to clarify methods 
+        
+        # The headers are determined by the cell's font being bold
         if @oo.font(row,col).bold?
-          if @oo.empty?(row, col+1) || ( @oo.cell(row, col+1) && @oo.font(row, col+1).bold? )
-            @style = :col
-            @header_index = row
-            @header_values = @oo.row(row).compact.map { |x| x.gsub(method_parens,'') }
-            return true
-          elsif  @oo.empty?(row+1, col) || ( @oo.cell(row+1, col) && @oo.font(row+1, col).bold? )
-            @style = :row
-            @header_index = col
-            @header_values = @oo.column(col).compact.map { |x| x.gsub(method_parens,'') }
+          
+          # See if this is a column format where the values
+          # for each record correspond to spreadsheet rows
+          #   *header*, *header*
+          #   value, value
+          #   value, value
+          # 
+          # We check this by testing to see if this is the last column (single column in the table)
+          # or if the cell to the right is bold (multiple columns in the table)
+          if  (@oo.last_column == col) || (@oo.cell(row, col+1) && @oo.font(row, col+1).bold?)
+            read_header(:row, row)
+          end
+          
+          # See if this is a row format where the values
+          # for each record correspond to spreadsheet columns
+          #   *header*, value, value
+          #   *header*, value, value
+          # 
+          # We check this by testing to see if this is the last row (single row in the table)
+          # or if the cell below is bold (multiple rows in the table)
+          if (@oo.last_row == row) || (@oo.cell(row+1, col) && @oo.font(row+1, col).bold?)
+            read_header(:column, col)
             return true
           end
+          
         end
         return false
       end
@@ -170,7 +163,8 @@ module Rasta
     end
     
     class Bookmark
-      attr_accessor :page_count, :record_count, :continue
+      attr_accessor :page_count, :max_page_count
+      attr_accessor :record_count, :max_record_count, :continue
 
       def initialize(options = {})
         @continue = false
@@ -212,12 +206,26 @@ module Rasta
       end
 
       def parse_bookmark(name)
-        if name =~ /^([^\[]+)(\[(\S+)\])?/
+        valid_bookmark_format = /^([^\[]+)(\[(\S+)\])?/
+        column_record = /\A[a-z]+\Z/i 
+        row_record = /\A\d+\Z/ 
+        return [nil,nil] if name.nil?
+        if name =~ valid_bookmark_format
           pagename = $1
-          recordid = $3.upcase if $3
-          return pagename, recordid
+          record = $3
+          case record
+          when column_record
+            record = GenericSpreadsheet.letter_to_number(record)
+          when row_record  
+            record = record.to_i
+          when nil
+            # no record set, which is fine
+          else
+            raise BookmarkError, "Invalid record name for bookmark '#{name}'" 
+          end   
+          return pagename, record
         else
-          raise BookmarkError, "Invalid bookmark '#{name}'" 
+          raise BookmarkError, "Invalid bookmark name '#{name}'" 
         end  
       end
     end

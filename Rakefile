@@ -38,7 +38,7 @@ end
  
 Spec::Rake::SpecTask.new('test') do |t|
   t.libs << File.join(File.dirname(__FILE__), 'lib')
-  t.spec_files = FileList['spec/**/*_.rb']
+  t.spec_files = FileList['spec/**/*.rb']
 end
 
 Spec::Rake::SpecTask.new(:rcov) do |t|
