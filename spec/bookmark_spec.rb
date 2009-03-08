@@ -94,4 +94,6 @@ describe 'Bookmark parsing' do
   it 'should raise an exception for an invalid bookmark' do
     lambda{ @bookmark.parse_bookmark("[1]") }.should raise_error(Rasta::Spreadsheet::BookmarkError)
   end
+  it 'should handle bookmarks to invalid worksheets'
+  it 'should handle bookmarks to invalid records'
 end
