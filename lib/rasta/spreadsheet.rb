@@ -53,6 +53,7 @@ module Rasta
       def [](x)
         @values[@header.index(x)]
       end
+      
     end
     
     # Access to the records of a given spreadsheet
@@ -70,14 +71,14 @@ module Rasta
         locate_header
         case @style
         when :row
-          ((@header_index + 1)..@oo.last_row).each do |index|
+          ((@header_index + 1)..@oo.last_column).each do |index|
             next if !@bookmark.found_record?(index)
             @bookmark.record_count += 1
             return if @bookmark.exceeded_max_records?
             yield Record.new(header, values(index))
           end
         when :col
-          ((@header_index + 1)..@oo.last_column).each do |index|
+          ((@header_index + 1)..@oo.last_row).each do |index|
             next if !@bookmark.found_record?(column_name(index))
             @bookmark.record_count += 1
             return if @bookmark.exceeded_max_records?
@@ -96,18 +97,27 @@ module Rasta
       # Return the values for a given row or col
       def values(x)
         locate_header
+        cell_values = []
         case @style
         when :row
-          cell_values = @oo.row(x)
-        when :col
           cell_values = @oo.column(x)
+        when :col
+          cell_values = @oo.row(x)
         end
-        raise RecordParseError, "No record exists at #{@style} #{x}" unless cell_values
-        cell_values = cell_values[@header_index..cell_values.size-1]
+        raise RecordParseError, "No record exists at #{@style} #{x}" if cell_values.compact == [] 
         cell_values.map! do |cell| 
           cell = string_to_datatype(cell) 
         end
         cell_values
+      end
+      
+      def dump
+        result = []
+        result << header
+        self.each do |record|
+          result << record.values
+        end
+        result
       end
       
       # Find the header by parsing the spreadsheet and auto-detecting

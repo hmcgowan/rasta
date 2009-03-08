@@ -18,8 +18,8 @@ module Rasta
           @metrics.inc(:record_count)
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
           try(:before_each)
-          record.headers.each do |header|
-            call_test_fixture(header, record[header])
+          record.header.each do |header_value|
+            call_test_fixture(header_value, record[header_value])
           end 
           try(:after_each)
           @test_fixture = self

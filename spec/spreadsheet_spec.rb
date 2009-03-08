@@ -151,11 +151,11 @@ describe 'Get record values' do
     
     it 'should be able to parse a col record' do
       @oo.default_sheet = 'col_flush'
-      @records.values(2).should == [2.0, 1, 0, 2, 0, 4.0]
+      @records.values(2).should == [1.0, 2.0]
     end
     it 'should be able to parse a row record' do
       @oo.default_sheet = 'row_flush'
-      @records.values(2).should == [2.0, 1, 0, 2, 0, 4.0]
+      @records.values(2).should == [1.0, 2.0]
     end
 end
 
@@ -164,14 +164,33 @@ describe 'Small datasets' do
   
   it 'should be able to parse a sheet with a single col record' do
     @oo.default_sheet = 'single_cell_col'
-    @records.values(1).should == [1]
+    @records.header.should == ['number']
+    @records.style.should == :col
+    @records.values(2).should == [1]
   end
   it 'should be able to parse a sheet with a single row record' do
     @oo.default_sheet = 'single_cell_row'
-    @records.values(1).should == [1]
+    @records.header.should == ['number']
+    @records.style.should == :row
+    @records.values(2).should == [1]
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'
-    lambda{ @records.values(2) }.should raise_error(Rasta::Spreadsheet::RecordParseError)
+    lambda{ @records.values(3) }.should raise_error(Rasta::Spreadsheet::RecordParseError)
   end
 end
+
+
+describe 'Iterate over records' do
+  it_should_behave_like 'spreadsheet_without_options'
+
+  it 'should be able to get all of the records for a col record' do
+    @oo.default_sheet = 'col_flush'
+    @records.dump.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+  end
+  it 'should be able to get all of the records for a row record' do
+    @oo.default_sheet = 'row_flush'
+    @records.dump.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+  end
+end
+
