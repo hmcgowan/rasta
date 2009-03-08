@@ -4,41 +4,44 @@ module Rasta
     class BookmarkError < RuntimeError; end
     class RecordParseError < RuntimeError; end
 
-    ARRAY  = /\A\s*\[.+\]\s*\Z/ms
-    HASH   = /\A\s*\{.+\}\s*\Z/ms
-    BOOL   = /\A\s*(true|false)\s*\Z/i
-    REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
-    NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
-    PARENS = /\(\)$/
-    
     def records(oo, opts)
       Records.new(oo, opts)
     end
 
-    # Delegate to roo for mapping col number to letters
-    def column_name(x)
-      GenericSpreadsheet.number_to_letter(x)
-    end
-    
-    # Given a string, find the closest Ruby data type
-    def string_to_datatype(x)
-      x.strip! if x.class == String
-      case x
-      when ARRAY, HASH, BOOL, REGEXP
-        eval(x)
-      when NUMBER
-        # if the number starts with 0 and not preceded
-        # by a decimal then treat as a string. This 
-        # makes sure things like zip codes are properly 
-        # handled. Not sure if there's a better way.
-        # If not that case, then eval to convert to the proper
-        # number datatype
-        x =~ /^0\d/ ? x : eval(x)  
-      else
-        x
+    module Utils
+      ARRAY  = /\A\s*\[.+\]\s*\Z/ms
+      HASH   = /\A\s*\{.+\}\s*\Z/ms
+      BOOL   = /\A\s*(true|false)\s*\Z/i
+      REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
+      NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
+
+      # Delegate to roo for mapping col number to letters
+      def column_name(x)
+        GenericSpreadsheet.number_to_letter(x)
       end
-    end     
     
+      # Given a string, find the closest Ruby data type
+      def string_to_datatype(x)
+        x.strip! if x.class == String
+        case x
+        when ARRAY, HASH, BOOL, REGEXP
+          eval(x)
+        when NUMBER
+          # if the number starts with 0 and not preceded
+          # by a decimal then treat as a string. This 
+          # makes sure things like zip codes are properly 
+          # handled. Not sure if there's a better way.
+          # If not that case, then eval to convert to the proper
+          # number datatype
+          x =~ /^0\d/ ? x : eval(x)  
+        else
+          x
+        end
+      end   
+    end  
+    
+    # A single record which represents a row or column
+    # of the spreadsheet wih the header values for that record
     class Record
       attr_accessor :header, :values
       
@@ -50,12 +53,13 @@ module Rasta
       def [](x)
         @values[@header.index(x)]
       end
-      
     end
     
+    # Access to the records of a given spreadsheet
     class Records
+      include Utils
       attr_reader :style
-      
+
       def initialize(oo, opts)
         @oo = oo
         @bookmark = Bookmark.new(opts)
@@ -63,6 +67,7 @@ module Rasta
       end
       
       def each(&block)
+        locate_header
         case @style
         when :row
           ((@header_index + 1)..@oo.last_row).each do |index|
@@ -84,27 +89,32 @@ module Rasta
       end
       
       def header
-        locate_header unless @header_values
+        locate_header 
         @header_values
       end
 
+      # Return the values for a given row or col
       def values(x)
+        locate_header
         case @style
         when :row
           cell_values = @oo.row(x)
         when :col
           cell_values = @oo.column(x)
         end
-        cell_values = cell_values[@header_index-1..cell_values.size-1]
+        raise RecordParseError, "No record exists at #{@style} #{x}" unless cell_values
+        cell_values = cell_values[@header_index..cell_values.size-1]
         cell_values.map! do |cell| 
           cell = string_to_datatype(cell) 
         end
         cell_values
       end
       
+      # Find the header by parsing the spreadsheet and auto-detecting
+      # if it's a row or column fixture layout. 
       def locate_header
-        @header_index = 0
-        @style = nil
+        return if (@oo.default_sheet == @current_sheet) && @header_values
+        reset_header
         if @oo.last_row && @oo.last_column
           (1..@oo.last_row).each do |row|
             (1..@oo.last_column).each do |col|
@@ -117,18 +127,29 @@ module Rasta
       end    
       private :locate_header
       
+      # If we've detected that we're on a new sheet, 
+      # reset the internal state
+      def reset_header
+        @style = nil
+        @header_index = 0
+        @header_values= nil
+        @current_sheet = @oo.default_sheet
+      end
+      private :reset_header
+      
       def found_header?(row, col)
         return true if @header_values
+        method_parens = /\(\)$/ # we're stripping out () if it's used to clarify methods 
         if @oo.font(row,col).bold?
-          if @oo.font(row, col+1).bold?
+          if @oo.empty?(row, col+1) || ( @oo.cell(row, col+1) && @oo.font(row, col+1).bold? )
             @style = :col
             @header_index = row
-            @header_values = @oo.row(row).compact.map { |x| x.gsub(PARENS,'') }
+            @header_values = @oo.row(row).compact.map { |x| x.gsub(method_parens,'') }
             return true
-          elsif @oo.font(row+1, col).bold?
+          elsif  @oo.empty?(row+1, col) || ( @oo.cell(row+1, col) && @oo.font(row+1, col).bold? )
             @style = :row
             @header_index = col
-            @header_values = @oo.column(col).compact.map { |x| x.gsub(PARENS,'') }
+            @header_values = @oo.column(col).compact.map { |x| x.gsub(method_parens,'') }
             return true
           end
         end
