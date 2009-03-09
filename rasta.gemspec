@@ -6,13 +6,13 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Hugh McGowan"]
-  s.date = %q{2009-03-01}
+  s.date = %q{2009-03-08}
   s.default_executable = %q{rasta}
   s.description = %q{Rasta is a keyword-driven test framework using spreadsheets to drive test automation. It is also loosely based on FIT - tables define test parameters which call your test fixture. As the test runs, the spreadsheet is updated with test results.}
   s.email = %q{hugh_mcgowan@yahoo.com}
   s.executables = ["rasta"]
   s.extra_rdoc_files = ["README", "LICENSE"]
-  s.files = ["bin/rasta", "lib/rasta", "lib/rasta/extensions", "lib/rasta/extensions/roo_extensions.rb", "lib/rasta/extensions/rspec_extensions.rb", "lib/rasta/fixture", "lib/rasta/fixture/base_fixture.rb", "lib/rasta/fixture/page_fixture.rb", "lib/rasta/fixture/rasta_fixture.rb", "lib/rasta/fixture/rspec_helpers.rb", "lib/rasta/fixture/table_fixture.rb", "lib/rasta/fixture_runner.rb", "lib/rasta/formatter", "lib/rasta/formatter/spreadsheet_formatter.rb", "lib/rasta/html.rb", "lib/rasta/spreadsheet.rb", "lib/rasta.rb", "spec/base_fixture_spec.rb", "spec/bookmark_spec.rb", "spec/rasta_fixture_spec.rb", "spec/sandbox", "spec/sandbox/fixtures", "spec/sandbox/fixtures/RastaTestFixture.rb", "spec/sandbox/spreadsheets", "spec/sandbox/spreadsheets/rasta_fixture.xls", "spec/sandbox/spreadsheets/spreadsheet_parsing.xls", "spec/spec_helper.rb", "spec/spreadsheet_spec.rb", "README", "LICENSE"]
+  s.files = ["bin/rasta", "lib/rasta", "lib/rasta/extensions", "lib/rasta/extensions/roo_extensions.rb", "lib/rasta/extensions/rspec_extensions.rb", "lib/rasta/fixture", "lib/rasta/fixture/base_fixture.rb", "lib/rasta/fixture/page_fixture.rb", "lib/rasta/fixture/rasta_fixture.rb", "lib/rasta/fixture/rspec_helpers.rb", "lib/rasta/fixture/table_fixture.rb", "lib/rasta/fixture_runner.rb", "lib/rasta/formatter", "lib/rasta/formatter/spreadsheet_formatter.rb", "lib/rasta/html", "lib/rasta/html/rasta.css", "lib/rasta/html/tabber-minimized.js", "lib/rasta/html.rb", "lib/rasta/spreadsheet.rb", "lib/rasta.rb", "spec/bookmark_spec.rb", "spec/sandbox", "spec/sandbox/base_fixture_spec.rbx", "spec/sandbox/fixtures", "spec/sandbox/fixtures/RastaTestFixture.rb", "spec/sandbox/rasta_fixture_spec.rbx", "spec/sandbox/spreadsheets", "spec/sandbox/spreadsheets/rasta_fixture.xls", "spec/sandbox/spreadsheets/spreadsheet_parsing.xls", "spec/spec_helper.rb", "spec/spreadsheet_spec.rb", "README", "LICENSE"]
   s.has_rdoc = true
   s.homepage = %q{http://github.com/hmcgowan/rasta}
   s.rdoc_options = ["--main", "README", "--inline-source", "--charset=UTF-8"]

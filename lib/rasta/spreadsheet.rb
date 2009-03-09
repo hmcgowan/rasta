@@ -58,6 +58,7 @@ module Rasta
       end
 
       def each(&block)
+        locate_header
         (@first_record..@last_record).each do |index|
           next if !@bookmark.found_record?(index)
           @bookmark.record_count += 1

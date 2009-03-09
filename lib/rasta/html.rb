@@ -1,5 +1,7 @@
 module Rasta  
   class HTML
+    Html_dir = File.join(File.dirname(__FILE__), 'html')
+    
     def initialize
       @tabs = []
       @pages = {}
@@ -7,39 +9,47 @@ module Rasta
   
     def write(filename)
       fh = File.new(filename, 'w') 
-      fh.puts header + tab_html + page_html + footer
+      fh.puts header + tab_html + footer
       fh.close
     end
     
+    def css
+      css = "<style TYPE=\"text/css\" MEDIA=\"screen\">\n"
+      rasta_css = File.new(File.join(Html_dir,'rasta.css'))
+      css += rasta_css.read
+      css += "</style>\n"
+    end
+    
+    def javascript
+      tabber = File.new(File.join(Html_dir,'tabber-minimized.js'))
+      javascript = "<script TYPE=\"text/javascript\">\n"
+      javascript += tabber.read
+      javascript += "</script>\n"
+    end
+    
     def header
-      <<-EOS
-      <html>
-      <head>
-      
-        <script src="http://code.jquery.com/jquery-latest.js"></script>
-        <link rel="stylesheet" href="http://ui.jquery.com/latest/themes/flora/flora.all.css" type="text/css" media="screen" title="Flora (Default)">
-        <script type="text/javascript" src="http://ui.jquery.com/latest/ui/ui.core.js"></script>
-        <script type="text/javascript" src="http://ui.jquery.com/latest/ui/ui.tabs.js"></script>
-        <script>
-        $(document).ready(function(){
-          $("#example > ul").tabs();
-          
-        });
-        </script>
-      </head>
-      <body>
-      <div id="example" class="flora">
-      EOS
+      header = <<-EOS
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Rasta Test Results</title>
+
+<div class ="tabber">
+EOS
+      header += css + javascript      
+      header += "</head>\n<body>\n"
+      header
     end
   
     def footer
       <<-EOS
-              </div>
-      </body>
-      </html>
+</div>
+</body>
+</html>
       EOS
     end
-
+    
     def add_tab(roo)
       sheet = roo.default_sheet
       @tabs << sheet
@@ -47,24 +57,16 @@ module Rasta
     end
     
     def tab_html
-      html = "            <ul>\n"
-      @tabs.each_index do |i|
-        html += "            <li><a href=\"#fragment-#{i+1}\"><span>#{@tabs[i]}</span></a></li>\n"
+      html = ''
+      @tabs.each do |tab|
+        html +=  "  <div class=\"tabbertab\">\n"
+        html += "    <h2>#{tab}</h2>\n"
+        html += "    <p>#{@pages[tab]}</p>\n"
+        html += "  </div>\n"
       end  
-      html += "            </ul>"
       html
     end
     
-    def page_html
-      html = ''
-      @tabs.each_index do |i|
-        html += "            <div id=\"fragment-#{i+1}\">\n"
-        html += @pages[@tabs[i]] + "\n"
-        html += "            </div>\n"
-      end
-      html
-    end
-  
     # Based on roo's output functions
     def spreadsheet_html(spreadsheet, results = [])
       result = []

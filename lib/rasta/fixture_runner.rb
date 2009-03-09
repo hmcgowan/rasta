@@ -25,20 +25,20 @@ module Rasta
     def run_spreadsheet
       roo = open_spreadsheet(@options[:spreadsheet])
       @loaded_classes = load_test_fixtures
+html = Rasta::HTML.new
       roo.sheets.each do |sheet| 
         next if sheet =~ /^#/
 #        next if !Rasta::Spreadsheet::Bookmark.found_page?(sheet)
         roo.default_sheet = sheet
         run_test_fixture(roo)
 #        return if Rasta::Spreadsheet::Bookmark.exceeded_max_records?
+html.add_tab(roo)
       end
+      # Find out the right place to put this
+      html.write(@options[:results_path] + '/' + File.basename(@options[:spreadsheet]) + '.html')
+
     end
     private :run_spreadsheet
-
-    # Find out the right place to put this
-    #html = Rasta::HTML.new
-    #html.add_tab(roo)
-    #html.write(@options[:results_path] + '/' + File.basename(@options[:spreadsheet]) + '.html')
 
 
     def open_spreadsheet(filename)
