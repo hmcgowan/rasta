@@ -9,8 +9,6 @@ testfile = File.join(Spreadsheet_dir, 'spreadsheet_parsing.xls')
 
 describe 'rasta_spreadsheet', :shared => true do
   include Rasta::Spreadsheet
-  include Rasta::Spreadsheet::Utils
-  
 end
 
 describe 'spreadsheet_without_options', :shared => true do
@@ -86,48 +84,48 @@ describe 'Convert strings to dataypes' do
    it_should_behave_like 'rasta_spreadsheet'
    
    it 'should trim whitespace' do 
-      string_to_datatype('    This is a string   ').should == 'This is a string'
+     '    This is a string   '.to_datatype!.should == 'This is a string'
    end
    it 'should convert strings to strings' do 
-     string_to_datatype('This is a string').should == 'This is a string'
-     string_to_datatype('This is a string]').should == 'This is a string]'
-     string_to_datatype('{This is a string').should == '{This is a string'
-     string_to_datatype('/This is a string').should == '/This is a string'
+     'This is a string'.to_datatype!.should == 'This is a string'
+     'This is a string]'.to_datatype!.should == 'This is a string]'
+     '{This is a string'.to_datatype!.should == '{This is a string'
+     '/This is a string'.to_datatype!.should == '/This is a string'
    end 
    it 'should handle multiline strings' do
-      string_to_datatype("This is a \nstring").should == "This is a \nstring"
-      string_to_datatype("This is a \rstring").should == "This is a \rstring"
-      string_to_datatype("This is a \r\nstring").should == "This is a \r\nstring"
+      "This is a \nstring".to_datatype!.should == "This is a \nstring"
+      "This is a \rstring".to_datatype!.should == "This is a \rstring"
+      "This is a \r\nstring".to_datatype!.should == "This is a \r\nstring"
    end
    it 'should convert arrays' do
-     string_to_datatype("['A','B','C']").should == ['A','B','C']
-     string_to_datatype("['A','B',['c','d']]").should == ['A','B',['c','d']]
+     "['A','B','C']".to_datatype!.should == ['A','B','C']
+     "['A','B',['c','d']]".to_datatype!.should == ['A','B',['c','d']]
    end
    it 'should convert hashes' do
-     string_to_datatype("{:a => 1, :b => 2}").should == {:a => 1, :b => 2}
-     string_to_datatype("{:a => 1, :b => 2, :c => {:d => 3}}").should == {:a => 1, :b => 2, :c => {:d => 3}}
+     "{:a => 1, :b => 2}".to_datatype!.should == {:a => 1, :b => 2}
+     "{:a => 1, :b => 2, :c => {:d => 3}}".to_datatype!.should == {:a => 1, :b => 2, :c => {:d => 3}}
    end
    it 'should convert numbers' do
-     string_to_datatype('0').should == 0
-     string_to_datatype('1').should == 1
-     string_to_datatype('1.0').should == 1
-     string_to_datatype('0.0').should == 0
-     string_to_datatype('0.1').should == 0.1
-     string_to_datatype('1.1').should == 1.1
+     '0'.to_datatype!.should == 0
+     '1'.to_datatype!.should == 1
+     '1.0'.to_datatype!.should == 1
+     '0.0'.to_datatype!.should == 0
+     '0.1'.to_datatype!.should == 0.1
+     '1.1'.to_datatype!.should == 1.1
    end
    it 'should convert boolean' do
-     string_to_datatype('TRUE').should be_true
-     string_to_datatype('true').should be_true
-     string_to_datatype('FALSE').should be_false
-     string_to_datatype('false').should be_false
+     'TRUE'.to_datatype!.should be_true
+     'true'.to_datatype!.should be_true
+     'FALSE'.to_datatype!.should be_false
+     'false'.to_datatype!.should be_false
    end
    it 'should not convert numbers when integer preceeded by 0' do
-     string_to_datatype('01234').should == '01234'
+     '01234'.to_datatype!.should == '01234'
    end
    it 'should convert regex' do
-     string_to_datatype('/test/').class.should == Regexp
-     string_to_datatype('/test/mx').class.should == Regexp
-     string_to_datatype("/test\n/mx").class.should == Regexp
+     '/test/'.to_datatype!.class.should == Regexp
+     '/test/mx'.to_datatype!.class.should == Regexp
+     "/test\n/mx".to_datatype!.class.should == Regexp
    end
 end
 

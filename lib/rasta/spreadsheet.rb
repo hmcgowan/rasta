@@ -1,3 +1,29 @@
+class String 
+  ARRAY  = /\A\s*\[.+\]\s*\Z/ms
+  HASH   = /\A\s*\{.+\}\s*\Z/ms
+  BOOL   = /\A\s*(true|false)\s*\Z/i
+  REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
+  NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
+
+  # Given a string, find the closest Ruby data type
+  def to_datatype!
+    self.strip! if self.class == String
+    case self
+    when ARRAY, HASH, BOOL, REGEXP
+      eval(self)
+    when NUMBER
+      # if the number starts with 0 and not preceded
+      # by a decimal then treat as a string. This 
+      # makes sure things like zip codes are properly 
+      # handled. Not sure if there's a better way.
+      # Otherwise eval to convert to the proper number datatype
+      self =~ /^0\d/ ? self : eval(self)  
+    else
+      self
+    end
+  end   
+end  
+
 module Rasta
   module Spreadsheet
     
@@ -8,32 +34,6 @@ module Rasta
       Records.new(oo, opts)
     end
 
-    module Utils
-      ARRAY  = /\A\s*\[.+\]\s*\Z/ms
-      HASH   = /\A\s*\{.+\}\s*\Z/ms
-      BOOL   = /\A\s*(true|false)\s*\Z/i
-      REGEXP = /\A\s*(\/.+\/)\w*\s*\Z/ms
-      NUMBER = /\A\s*-?\d+\.??\d*?\s*\Z/
-
-      # Given a string, find the closest Ruby data type
-      def string_to_datatype(x)
-        x.strip! if x.class == String
-        case x
-        when ARRAY, HASH, BOOL, REGEXP
-          eval(x)
-        when NUMBER
-          # if the number starts with 0 and not preceded
-          # by a decimal then treat as a string. This 
-          # makes sure things like zip codes are properly 
-          # handled. Not sure if there's a better way.
-          # Otherwise eval to convert to the proper number datatype
-          x =~ /^0\d/ ? x : eval(x)  
-        else
-          x
-        end
-      end   
-    end  
-    
     class Record
       attr_accessor :name, :header, :values
 
@@ -44,8 +44,6 @@ module Rasta
     end
     
     class Records
-      include Utils
-
       def initialize(oo, opts)
         @oo = oo
         @bookmark = Bookmark.new(opts)
@@ -83,7 +81,7 @@ module Rasta
         cell_values = []
         cell_values = @oo.send(@oo_record_method_name, x)  # @oo.row(x) or @oo.column(x)
         raise RecordParseError, "No record exists at index #{x}" if cell_values.compact == [] 
-        cell_values.map! { |cell| cell = string_to_datatype(cell) } 
+        cell_values.map! { |cell| cell.class == String ? cell.to_datatype! : cell  } 
         cell_values
       end
       
