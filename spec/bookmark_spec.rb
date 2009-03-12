@@ -1,11 +1,11 @@
-specdir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(specdir)
+Lib_dir = File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH.unshift File.expand_path(Lib_dir)
 
 require 'spec/spec_helper'
 require 'lib/rasta/spreadsheet'
 require 'roo'
 
-testfile = File.join(specdir, 'spreadsheets/spreadsheet_parsing.xls')
+testfile = File.join(Spec_dir, 'spreadsheets/spreadsheet_parsing.xls')
 
 describe 'Bookmarks without commandline options' do
   before :all do

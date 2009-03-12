@@ -1,13 +1,13 @@
 module Rasta
   module Fixture
-    
     module BaseFixture
       include Rasta::Spreadsheet
- 
+      include Rasta::Fixture::Metrics
+       
       def initialize_test_fixture(roo_reference, options)
         @oo = roo_reference
         @options = options
-        @metrics = Metrics.new
+        @metrics = Counter.new
       end
        
       # Call into rspec to run the current set of tests
@@ -19,6 +19,10 @@ module Rasta
          Spec::Runner.options.remove_example_group(Spec::Runner.options.example_groups[0]) 
       end
       
+      def current_rspec_record(x)
+        Spec::Runner.options.reporter.record = x
+      end
+
       # Allow access to the current failure count from RSpec
       # which will let us change the tab color based on the test results
       def current_failure_count
@@ -86,28 +90,6 @@ module Rasta
       # teardown needed
       #def after_all
       #end
-
-
-      # Store metrics as the fixture is running
-      class Metrics
-        attr_accessor :attribute_count, :method_count, :record_count
-        def initialize
-          reset_page_counts
-          reset_record_counts
-        end
-        # Counts tracked on a worksheet scope
-        def reset_page_counts
-          @record_count = 0
-        end
-        # Counts tracked on a record scope
-        def reset_record_counts
-          @attribute_count = 0
-          @method_count = 0
-        end
-        def inc(attribute_name)
-           eval("@#{attribute_name.to_s} += 1")
-        end
-      end
 
     end
   end  

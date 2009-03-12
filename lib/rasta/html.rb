@@ -1,6 +1,6 @@
 module Rasta  
   class HTML
-    Html_dir = File.join(File.dirname(__FILE__), 'html')
+    Html_dir = File.join(File.dirname(__FILE__), 'resources')
     
     def initialize
       @tabs = []

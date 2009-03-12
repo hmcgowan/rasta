@@ -30,6 +30,23 @@ module Rasta
     class BookmarkError < RuntimeError; end
     class RecordParseError < RuntimeError; end
 
+    # Using the file extension, open the 
+    # spreadsheet with the right roo method
+    def self.open(filename)
+      case File.extname(filename)
+      when '.xls'
+        Excel.new(filename)
+      when '.xlsx'
+        Excelx.new(filename)
+      when '.ods'
+        Openoffice.new(filename)
+      when ''
+        Google.new(filename)
+      else
+        raise ArgumentError, "Don't know how to handle spreadsheet #{filename}"
+      end        
+    end
+
     def records(oo, opts)
       Records.new(oo, opts)
     end
@@ -56,6 +73,7 @@ module Rasta
       end
 
       def each(&block)
+        return unless @bookmark.found_page?(@oo.default_sheet)
         locate_header
         (@first_record..@last_record).each do |index|
           next if !@bookmark.found_record?(index)

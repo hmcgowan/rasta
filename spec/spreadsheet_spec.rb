@@ -1,5 +1,5 @@
-specdir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(specdir)
+Root_dir = File.join(File.dirname(__FILE__), '..')
+$LOAD_PATH.unshift File.expand_path(Root_dir)
 
 require 'spec/spec_helper'
 require 'roo'

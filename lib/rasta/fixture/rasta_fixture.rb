@@ -13,6 +13,7 @@ module Rasta
         try(:before_all)
         
         records(@oo, @options).each do |record|
+          current_rspec_record = record
           @metrics.reset_record_counts
           @current_record = record
           @metrics.inc(:record_count)

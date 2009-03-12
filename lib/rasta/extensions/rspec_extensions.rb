@@ -34,10 +34,14 @@ module Spec
       # Call the formatter's method and pass in the reference
       # to the spreadsheet cell so it can use it for updating 
       # the cell contents based on the test result
-      def set_current_spreadsheet_cell=(cell_reference)
-        formatters.each { |f| f.cell=(cell_reference) if f.methods.include?('cell=') }
+      def record=(spreadsheet_record)
+        formatters.each { |f| f.record=(spreadsheet_record) if f.methods.include?('record=') }
       end
       
+      def roo=(roo_reference)
+        formatters.each { |f| f.oo=(roo_reference) if f.methods.include?('oo=') }
+      end
+
       # Stub out the dump method and call it
       # after all tests are run
       alias  :original_dump :dump
