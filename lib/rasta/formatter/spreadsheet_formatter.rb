@@ -33,15 +33,20 @@ module Spec
 
         def example_failed(example, counter, failure)
           if failure.exception.backtrace
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class']  = "exception"
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "exception"
           else
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class']  = "failed" 
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "failed" 
           end
           @doc.save(@output.path)
         end
         
         def example_passed(example)
           @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'passed'
+          @doc.save(@output.path)
+        end
+
+        def example_pending(example, message, pending_caller)
+          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'pending'
           @doc.save(@output.path)
         end
 
