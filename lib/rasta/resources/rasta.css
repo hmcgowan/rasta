@@ -1,11 +1,11 @@
 
 td.passed
 {
- background-color: #33FF99
+ background-color: #66FF99
 }
 td.failed
 {
- background-color: #CC3333
+ background-color: #EE6666
 }
 td.pending
 {

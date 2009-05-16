@@ -32,7 +32,11 @@ module Spec
         end
 
         def example_failed(example, counter, failure)
-          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'failed'
+          if failure.exception.backtrace
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class']  = "exception"
+          else
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class']  = "failed" 
+          end
           @doc.save(@output.path)
         end
         
