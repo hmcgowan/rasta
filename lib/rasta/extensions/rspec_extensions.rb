@@ -69,8 +69,8 @@ module Spec
       def example_finished(*args)
         error = args[1]
         if error
-          if ::Spec::Matchers.given_error
-            error.set_backtrace(::Spec::Matchers.given_error.backtrace) 
+          if ::Spec::Matchers.actual_error
+            error.set_backtrace(::Spec::Matchers.actual_error.backtrace) 
           else
             error.set_backtrace(nil) 
           end
@@ -110,10 +110,10 @@ module Spec
       alias :old_matches? :matches?
       def matches?(*args)
         old_matches?(*args)
-        if @given_error
-          ::Spec::Matchers.given_error = @given_error
+        if @actual_error
+          ::Spec::Matchers.actual_error = @actual_error
         else
-          ::Spec::Matchers.given_error = nil
+          ::Spec::Matchers.actual_error = nil
         end
       end
     end
@@ -127,7 +127,7 @@ require 'spec/matchers'
 module Spec
   module Matchers
     class << self
-      attr_accessor :given_error
+      attr_accessor :actual_error
     end
   end
 end

@@ -1,3 +1,32 @@
+
+td.passed
+{
+ background-color:green
+}
+td.failed
+{
+ background-color:red
+}
+td.pending
+{
+ background-color:orange
+}
+td.exception
+{
+ background-color:yellow
+}
+td.not_run
+{
+ background-color:white
+}
+td.header
+{
+ background-color:gray
+}
+
+
+/* TABBER CSS */
+
 /* $Id: example.css,v 1.5 2006/03/27 02:44:36 pat Exp $ */
 
 /*--------------------------------------------------

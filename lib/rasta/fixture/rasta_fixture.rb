@@ -12,15 +12,18 @@ module Rasta
         initial_failure_count = current_failure_count
         try(:before_all)
         
-        records(@oo, @options).each do |record|
-          current_rspec_record = record
+        @oo.records(@options).each do |record|
           @metrics.reset_record_counts
           @current_record = record
           @metrics.inc(:record_count)
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
           try(:before_each)
-          record.header.each do |header|
-            call_test_fixture(header, record[header])
+          record.each do |cell|
+    set_formatter_record(cell)
+    puts cell.name
+    puts cell.header
+    puts cell.value
+            call_test_fixture(cell.header, cell.value)
           end 
           try(:after_each)
           @test_fixture = self

@@ -1,7 +1,6 @@
 module Rasta
   module Fixture
     module BaseFixture
-      include Rasta::Spreadsheet
       include Rasta::Fixture::Metrics
        
       def initialize_test_fixture(roo_reference, options)
@@ -19,8 +18,8 @@ module Rasta
          Spec::Runner.options.remove_example_group(Spec::Runner.options.example_groups[0]) 
       end
       
-      def current_rspec_record(x)
-        Spec::Runner.options.reporter.record = x
+      def set_formatter_record(x)
+        Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x.name
       end
 
       # Allow access to the current failure count from RSpec

@@ -1,8 +1,7 @@
+require 'rubygems'
 require 'spec'
 require 'fileutils'
-require 'roo'
 require 'rasta/extensions/roo_extensions'
-require 'rasta/spreadsheet'
 require 'rasta/fixture/metrics'
 
 module Rasta
@@ -82,12 +81,11 @@ module Rasta
     private :start_rspec
    
     def run_test_fixtures
-      roo = Rasta::Spreadsheet.open(@options[:spreadsheet])
+      roo = Roo::Spreadsheet.open(@options[:spreadsheet])
       Spec::Runner.options.reporter.roo = roo 
 
       @loader = ClassLoader.new(@options[:fixture_path])
       @loader.load_test_fixtures
-#html = Rasta::HTML.new
       roo.sheets.each do |sheet| 
         next if sheet =~ /^#/ #skip sheets that are only comments
         begin
@@ -100,9 +98,7 @@ module Rasta
           raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
         end
         fixture.generate_rspec_tests
-#html.add_tab(roo)
       end
-#html.write(@options[:results_path] + '/' + File.basename(@options[:spreadsheet]) + '.html')
     end
     private :run_test_fixtures
 

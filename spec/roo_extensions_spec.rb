@@ -1,14 +1,38 @@
+# lib_dir = File.join(File.dirname(__FILE__), '..')
+# $LOAD_PATH.unshift File.expand_path(lib_dir)
+
+# require 'spec/spec_helper'
+# 
+# # TODO: update this since we're requiring roo now
+# describe 'Roo Extensions' do
+#   before :all do
+#     Object.constants.delete('Google') if Object.constants.member?('Google')
+#     class GenericSpreadsheet; end
+#     require 'rasta/extensions/roo_extensions'
+#     @oo = Google.new
+#   end
+#   it 'should implement a font interface for Google docs' do
+#     @oo.font(2,1).class.should == Google::Font
+#   end
+#   it 'should see the first column as bold (forces column fixture)' do
+#     @oo.font(2,1).bold?.should == true
+#   end
+#   it 'should see the any other column as normal' do
+#     @oo.font(2,2).bold?.should == false
+#   end
+# end
+
 Root_dir = File.join(File.dirname(__FILE__), '..')
 $LOAD_PATH.unshift File.expand_path(Root_dir)
 
 require 'spec/spec_helper'
 require 'roo'
-require 'lib/rasta/spreadsheet'
+require 'lib/rasta/extensions/roo_extensions'
 
 testfile = File.join(Spreadsheet_dir, 'spreadsheet_parsing.xls')
 
 describe 'rasta_spreadsheet', :shared => true do
-  include Rasta::Spreadsheet
+  include Roo::Spreadsheet
 end
 
 describe 'spreadsheet_without_options', :shared => true do
@@ -16,7 +40,7 @@ describe 'spreadsheet_without_options', :shared => true do
   before :all do
     @oo = Excel.new(testfile)
     @options = {}
-    @records = records(@oo, @options)
+    @records = @oo.records(@options)
     @header = ['a','b']
   end
 end
@@ -68,15 +92,15 @@ describe 'Handle Header Exceptions' do
 
   it 'should throw an error on an empty sheet when parsing headers' do
     @oo.default_sheet = 'empty_sheet'
-    lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
+    lambda{ @records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
   end
   it 'should throw an error on sheet without bold cells' do
     @oo.default_sheet = 'no_header'
-    lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
+    lambda{ @records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
   end
   it 'should throw an error on sheet without valid header cells' do
     @oo.default_sheet = 'invalid_header'
-    lambda{ @records.header }.should raise_error(Rasta::Spreadsheet::RecordParseError)
+    lambda{ @records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
   end
 end
 
@@ -157,17 +181,38 @@ describe 'Small datasets' do
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'
-    lambda{ @records.values(3) }.should raise_error(Rasta::Spreadsheet::RecordParseError)
+    lambda{ @records.values(3) }.should raise_error(Roo::Spreadsheet::RecordParseError)
   end
 end
 
 
-describe 'Iterate over records' do
+describe 'Dump records' do
   it_should_behave_like 'spreadsheet_without_options'
 
   it 'should be able to get all of the records for a col record' do
     @oo.default_sheet = 'col_flush'
     @records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+  end
+  it 'should be able to get all of the records for a row record' do
+    @oo.default_sheet = 'row_flush'
+    @records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+  end
+end
+
+describe 'Iterate over records' do
+  it_should_behave_like 'spreadsheet_without_options'
+# @oo.header
+# @oo.first_record
+  it 'should be able to get all of the records for a col record' do
+    @oo.default_sheet = 'row_flush'
+    @oo.records.each do |record|
+      record.each do |cell|
+        puts cell.value
+        puts cell.name
+        puts cell.header
+      end
+    end
+    #@records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
     @oo.default_sheet = 'row_flush'
