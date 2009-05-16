@@ -3,9 +3,8 @@ module Rasta
     module BaseFixture
       include Rasta::Fixture::Metrics
        
-      def initialize_test_fixture(roo_reference, options)
+      def initialize_test_fixture(roo_reference)
         @oo = roo_reference
-        @options = options
         @metrics = Counter.new
       end
        

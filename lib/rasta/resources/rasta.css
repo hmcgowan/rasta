@@ -1,27 +1,27 @@
 
 td.passed
 {
- background-color:green
+ background-color: #33FF99
 }
 td.failed
 {
- background-color:red
+ background-color: #CC3333
 }
 td.pending
 {
- background-color:orange
+ background-color: orange
 }
 td.exception
 {
- background-color:yellow
+ background-color: yellow
 }
 td.not_run
 {
- background-color:white
+ background-color: white
 }
 td.header
 {
- background-color:gray
+ background-color: gray
 }
 
 

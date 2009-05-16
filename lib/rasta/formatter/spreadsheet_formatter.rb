@@ -32,13 +32,11 @@ module Spec
         end
 
         def example_failed(example, counter, failure)
-    puts       "//td[@id='#{@record}']"
           @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'failed'
           @doc.save(@output.path)
         end
         
         def example_passed(example)
-          puts "//td[@id='#{@record}']"
           @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'passed'
           @doc.save(@output.path)
         end

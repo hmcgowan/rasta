@@ -82,6 +82,7 @@ module Rasta
    
     def run_test_fixtures
       roo = Roo::Spreadsheet.open(@options[:spreadsheet])
+      Roo::Spreadsheet::options = @options
       Spec::Runner.options.reporter.roo = roo 
 
       @loader = ClassLoader.new(@options[:fixture_path])
@@ -93,7 +94,7 @@ module Rasta
           base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
           classname = @loader.find_class_by_name(base_sheet_name)
           fixture = classname.new
-          fixture.initialize_test_fixture(roo, @options)
+          fixture.initialize_test_fixture(roo)
         rescue ArgumentError => e
           raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
         end

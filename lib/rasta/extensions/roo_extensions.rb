@@ -4,23 +4,36 @@ require 'rasta/extensions/ruby_extensions'
 module Roo
   module Spreadsheet
     
-    # Using the file extension, open the 
-    # spreadsheet with the right roo method
-    def self.open(filename)
-      case File.extname(filename)
-      when '.xls'
-        Excel.new(filename)
-      when '.xlsx'
-        Excelx.new(filename)
-      when '.ods'
-        Openoffice.new(filename)
-      when ''
-        Google.new(filename)
-      else
-        raise ArgumentError, "Don't know how to handle spreadsheet #{filename}"
-      end        
-    end
+    class << self
+      @@options = {}
+  
+      # Using the file extension, open the 
+      # spreadsheet with the right roo method
+      def open(filename)
+        case File.extname(filename)
+        when '.xls'
+          Excel.new(filename)
+        when '.xlsx'
+          Excelx.new(filename)
+        when '.ods'
+          Openoffice.new(filename)
+        when ''
+          Google.new(filename)
+        else
+          raise ArgumentError, "Don't know how to handle spreadsheet #{filename}"
+        end        
+      end
     
+      def options
+        @@options
+      end  
+      
+      def options=(x)
+        @@options = x
+      end  
+      
+    end
+      
     class BookmarkError < RuntimeError; end
     class RecordParseError < RuntimeError; end
 
@@ -34,7 +47,7 @@ module Roo
     end
     
     class Record
-      attr_accessor :sheet, :record_cells, :header
+      attr_accessor :record_cells, :header
 
       def each
         @record_cells.each { |cell| yield cell }
@@ -55,41 +68,48 @@ module Roo
         @header.each {|h| result[h] = self[h] }
         result 
       end
+      
+      def to_a
+        result = []
+        @record_cells.each {|c| result << c.value }
+        result 
+      end
     end
     
     class Records
-      attr_accessor :type, :first_record, :last_record
+      attr_accessor :type, :header, :first_record, :last_record
       
-      def initialize(oo, opts)
+      def initialize(oo)
         @oo = oo
-        @bookmark = Bookmark.new(opts)
+        @bookmark = Bookmark.new
         @bookmark.page_count += 1
+        @record_list = []
+        locate_header
       end
       
-      def header
-        locate_header 
-        @header_values
-      end
 
       def each(&block)
         return unless @bookmark.found_page?(@oo.default_sheet)
-        locate_header
         (@first_record..@last_record).each do |index|
           next if !@bookmark.found_record?(index)
           @bookmark.record_count += 1
           return if @bookmark.exceeded_max_records?
-          record = Record.new
-          record.sheet = @oo.default_sheet
-          record.header = @header_values
-          record.record_cells = record_cells(index)
-          yield record
+          yield self[index]
         end
       end
 
+      def [](x)
+        return @record_list[x] if @record_list[x]
+        @record_list[x]  = Record.new
+        @record_list[x].header = @header
+        @record_list[x].record_cells = record_cells(x)
+        @record_list[x]
+      end
+      
       def to_a
         result = []
-        result << header
-        self.each { |record| result << record.values }
+        result << @header
+        self.each { |record| result << record.to_a }
         result
       end
       
@@ -100,7 +120,6 @@ module Roo
       end
       
       def record_cells(x)
-        locate_header
         record_values = []
         record_values = @oo.send(@type, x)  # @oo.row(x) or @oo.column(x)
         raise RecordParseError, "No record exists at index #{x}" if record_values.compact == [] 
@@ -111,19 +130,19 @@ module Roo
           name = nil
           if @type == :row
             name = GenericSpreadsheet.number_to_letter(idx) + x.to_s
-            header = @header_values[idx-1]
+            hdr = @header[idx-1]
           else
             name = GenericSpreadsheet.number_to_letter(x) + idx.to_s
-            header = @header_values[idx-1]
+            hdr = @header[idx-1]
           end
-          cells << RecordCell.new(name, val, header)
+          cells << RecordCell.new(name, val, hdr)
           idx += 1
         end
         cells
       end
       
       def reset_header
-        @header_values= nil
+        @header = nil
         @current_sheet = @oo.default_sheet
       end
       private :reset_header
@@ -131,9 +150,9 @@ module Roo
       # Get the header values and set the first and last record indexes
       def read_header(type, index)
         @type = type
-        @header_values = @oo.send(@type, index)
-        @header_values.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
-        @header_values.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
+        @header = @oo.send(@type, index)
+        @header.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
+        @header.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
         @first_record = index + 1
         @last_record = @oo.send("last_" + @type.to_s)
       end
@@ -142,7 +161,7 @@ module Roo
       # Find the header by scanning the spreadsheet and
       # testing each cell until we've found the header
       def locate_header
-        return if (@oo.default_sheet == @current_sheet) && @header_values
+        return if (@oo.default_sheet == @current_sheet) && @header
         reset_header
         if @oo.last_row && @oo.last_column
           (1..@oo.last_row).each do |row|
@@ -152,12 +171,12 @@ module Roo
             end     
           end
         end
-        raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @header_values
+        raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @header
       end    
       private :locate_header
       
       def found_header?(row, col)
-        return true if @header_values
+        return true if @header
         
         # The headers are determined by the cell's font being bold
         if @oo.font(row,col).bold?
@@ -197,13 +216,13 @@ module Roo
       attr_accessor :page_count, :max_page_count
       attr_accessor :record_count, :max_record_count, :continue
 
-      def initialize(options = {})
+      def initialize
         @continue = false
         @page_count = 0
         @record_count = 0
-        @max_page_count = options[:pages] || 0
-        @max_record_count = options[:records] || 0
-        read(options)
+        @max_page_count = Roo::Spreadsheet::options[:pages] || 0
+        @max_record_count = Roo::Spreadsheet::options[:records] || 0
+        read
       end
       
       def found_page?(page)
@@ -225,10 +244,10 @@ module Roo
         return false
       end
     
-      def read(options)
-        if options[:continue]
+      def read
+        if Roo::Spreadsheet::options[:continue]
           @continue = true 
-          @bookmark_page, @bookmark_record = parse_bookmark(options[:continue])
+          @bookmark_page, @bookmark_record = parse_bookmark(Roo::Spreadsheet::options[:continue])
           @found_bookmark_record = true unless @bookmark_record
         else
           @found_bookmark_page = true
@@ -265,8 +284,8 @@ module Roo
 end
 
 class GenericSpreadsheet
-  def records(opts={})
-    Roo::Spreadsheet::Records.new(self, opts)
+  def records
+    Roo::Spreadsheet::Records.new(self)
   end
 end
 
