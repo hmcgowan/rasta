@@ -97,7 +97,7 @@ module Roo
     end
     
     class Records
-      attr_accessor :type, :header, :first_record, :last_record
+      attr_accessor :type, :header, :header_index, :first_record, :last_record
       
       def initialize(oo, sheet)
         @oo = oo
@@ -174,6 +174,7 @@ module Roo
         @header.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
         @header.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
         @first_record = index + 1
+        @header_index = index
         @last_record = @oo.send("last_" + @type.to_s)
       end
       private :read_header

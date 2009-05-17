@@ -21,25 +21,33 @@ module Spec
         end
         
         def example_passed(example)
-          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'passed'
+          table_cell = @doc.find("//td[@id='#{@record}']")[0]
+          table_cell.attributes['class'] = 'passed'
           @doc.save(@output.path)
         end
 
         def example_failed(example, counter, failure)
           message = @record + "\n" + failure.exception.message
+          table_cell = @doc.find("//td[@id='#{@record}']")[0]
           if failure.exception.backtrace
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "exception"
-            add_test_detail(message + failure.exception.backtrace.join("\n"))
-          else
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "failed" 
+            message += failure.exception.backtrace.join("\n")
+            table_cell.attributes['class'] = "exception"
             add_test_detail(message)
+            add_tooltip(table_cell, message)
+          else
+            table_cell.attributes['class'] = "failed" 
+            add_test_detail(message)
+            add_tooltip(table_cell, message)
           end
           @doc.save(@output.path)
         end
 
         def example_pending(example, message, pending_caller)
-          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'pending'
-          add_test_detail("#{@record} #{example.description} (#{message})")
+          message = "#{@record} #{example.description} (#{message})"
+          table_cell =  @doc.find("//td[@id='#{@record}']")[0]
+          table_cell.attributes['class'] = 'pending'
+          add_test_detail(message)
+          add_tooltip(table_cell, message)
           @doc.save(@output.path)
         end
         
@@ -51,12 +59,16 @@ module Spec
   
         # Inject a div with test detail information as a child of the html_info div
         def add_test_detail(text)
-          @doc.find("//div[@class='#{@oo.default_sheet}-information']")[0] << div = child = XML::Node.new('div')
+          @doc.find("//div[@class='#{@oo.default_sheet}-information']")[0] << div = XML::Node.new('div')
           div['id'] = "#{@record}"
           div << pre = XML::Node.new('pre')
-          pre << text_node = XML::Node.new_text(text)
+          pre << XML::Node.new_text(text)
         end
 
+        def add_tooltip(table_cell, text)
+          table_cell << span = XML::Node.new('span')
+          span << XML::Node.new_text(text)
+        end
 
         def html_header
           header = <<-EOS
@@ -115,44 +127,33 @@ module Spec
           EOS
         end
         
-        # probably need to change this to 
-        # use records so we can highlight the 
-        # headers with a different formatting
-        
+        #need to look at refactoring because we should be able to ust use records
+        # since we need them anyway
         def html_spreadsheet
           o=""
           sheet = @oo.default_sheet
           linenumber = @oo.first_row(sheet) 
           o << "<table id=\"#{sheet}\" summary=\"Test results for tab #{sheet}\" border=\"0\" cellspacing=\"1\" cellpadding=\"5\">"
-          first_row    = @oo.first_row(sheet) 
-          last_row     = @oo.last_row(sheet)
-          first_column = @oo.first_column(sheet) 
-          last_column  = @oo.last_column(sheet) 
-          o << "<tr align=\"center\">"
+          o << "<tr class=\"column-index\" align=\"center\">"
           o << "<td>&nbsp;</td>"
+          records = @oo.records(sheet)
           @oo.first_column(sheet).upto(@oo.last_column(sheet)) {|col| 
-            if col < first_column or col > last_column
-              next
-            end
-            o << "<th>"
-            o << "<b>#{GenericSpreadsheet.number_to_letter(col)}</b>"
-            o << "</th>"
+            o << "<td class=\"column-index\">#{GenericSpreadsheet.number_to_letter(col)}</td>"
           } 
           o << "</tr>"
           @oo.first_row.upto(@oo.last_row) do |row|
-            if first_row and (row < first_row or row > last_row)
-              next
-            end
             o << "<tr>"
-            o << "<th>#{linenumber.to_s}</th>"
+            o << "<td class=\"row-index\">#{linenumber.to_s}</td>"
             linenumber += 1
             @oo.first_column(sheet).upto(@oo.last_column(sheet)) do |col|
-              if col < first_column or col > last_column
-                next
+              if (records.type == :column && col == records.header_index) || records.type == :row && row == records.header_index
+                td_class = 'header'
+              else
+                td_class = 'not_run'
               end
               cell = @oo.cell(row,col).to_s
               cell =~ /\A\S+\Z/ ? align = 'align=center' : align = ''
-              o << "<td id=\"#{sheet}-#{GenericSpreadsheet.number_to_letter(col)}#{row}\" class=\"not_run\">"
+              o << "<td id=\"#{sheet}-#{GenericSpreadsheet.number_to_letter(col)}#{row}\" class=\"#{td_class}\">"
               if cell.empty?
                 o << "&nbsp;"
               else

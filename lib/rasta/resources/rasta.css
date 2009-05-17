@@ -1,4 +1,34 @@
 
+td:hover {
+  background:#ffffff; 
+  text-decoration:none;
+}
+td span {
+  display:none; 
+  padding:2px 3px; 
+  margin-left:8px; 
+  width:600px;
+}
+td:hover span{
+  display:inline;
+  position:absolute;
+  background:#ffffff;
+  border:1px solid #cccccc;
+  color:#6c6c6c;}
+
+td.row-index
+{
+/* border-right-style: solid;
+ border-right-width: thin; */
+ font-variant: small-caps;
+}
+td.column-index
+{
+/* border-bottom-style: solid;
+ border-bottom-width: thin; */
+ font-variant: small-caps;
+}
+
 td.passed
 {
  background-color: #66FF99
@@ -20,8 +50,12 @@ td.not_run
  background-color: white
 }
 td.header
-{
- background-color: gray
+{ 
+/* border-style: solid; 
+font-variant: small-caps;
+ border-width: thin; */
+ background-color: #CCCCCC;
+ font-weight: bold;
 }
 
 
