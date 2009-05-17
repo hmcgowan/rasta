@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'spec'
 require 'fileutils'
+require 'roo'
 require 'rasta/extensions/roo_extensions'
 require 'rasta/fixture/metrics'
 
