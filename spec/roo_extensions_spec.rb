@@ -1,27 +1,3 @@
-# lib_dir = File.join(File.dirname(__FILE__), '..')
-# $LOAD_PATH.unshift File.expand_path(lib_dir)
-
-# require 'spec/spec_helper'
-# 
-# # TODO: update this since we're requiring roo now
-# describe 'Roo Extensions' do
-#   before :all do
-#     Object.constants.delete('Google') if Object.constants.member?('Google')
-#     class GenericSpreadsheet; end
-#     require 'rasta/extensions/roo_extensions'
-#     @oo = Google.new
-#   end
-#   it 'should implement a font interface for Google docs' do
-#     @oo.font(2,1).class.should == Google::Font
-#   end
-#   it 'should see the first column as bold (forces column fixture)' do
-#     @oo.font(2,1).bold?.should == true
-#   end
-#   it 'should see the any other column as normal' do
-#     @oo.font(2,2).bold?.should == false
-#   end
-# end
-
 Root_dir = File.join(File.dirname(__FILE__), '..')
 $LOAD_PATH.unshift File.expand_path(Root_dir)
 
@@ -109,16 +85,16 @@ describe 'Handle Header Exceptions' do
 end
 
 describe 'Get record values' do
-    it_should_behave_like 'spreadsheet_without_options'
-    
-    it 'should be able to parse a col record' do
-      @oo.default_sheet = 'col_flush'
-      @oo.records[2].to_a.should == [1.0, 2.0]
-    end
-    it 'should be able to parse a row record' do
-      @oo.default_sheet = 'row_flush'
-      @oo.records[2].to_a.should == [1.0, 2.0]
-    end
+  it_should_behave_like 'spreadsheet_without_options'
+  
+  it 'should be able to parse a col record' do
+    @oo.default_sheet = 'col_flush'
+    @oo.records[2].to_a.should == [1.0, 2.0]
+  end
+  it 'should be able to parse a row record' do
+    @oo.default_sheet = 'row_flush'
+    @oo.records[2].to_a.should == [1.0, 2.0]
+  end
 end
 
 describe 'Small datasets' do
