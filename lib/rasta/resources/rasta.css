@@ -5,15 +5,15 @@ td.passed
 }
 td.failed
 {
- background-color: #EE6666
+ background-color: #FFBB99
 }
 td.pending
 {
- background-color: orange
+ background-color: #CCCCFF
 }
 td.exception
 {
- background-color: yellow
+ background-color: #FFFF99
 }
 td.not_run
 {
