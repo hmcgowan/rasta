@@ -27,8 +27,8 @@ class Google < GenericSpreadsheet
 end
 
 class GenericSpreadsheet
-  def records
-    Roo::Spreadsheet::Records.new(self)
+  def records(sheet = nil)
+    Roo::Spreadsheet::Records.new(self, sheet)
   end
 end
 
@@ -36,7 +36,17 @@ module Roo
   module Spreadsheet
     
     class << self
+      # Make a place where we can access the 
+      # commandline options from the roo object
       @@options = {}
+
+      def options
+        @@options
+      end  
+
+      def options=(x)
+        @@options = x
+      end  
   
       # Using the file extension, open the 
       # spreadsheet with the right roo method
@@ -54,15 +64,6 @@ module Roo
           raise ArgumentError, "Don't know how to handle spreadsheet #{filename}"
         end        
       end
-    
-      def options
-        @@options
-      end  
-      
-      def options=(x)
-        @@options = x
-      end  
-      
     end
       
     class RecordParseError < RuntimeError; end
@@ -109,8 +110,9 @@ module Roo
     class Records
       attr_accessor :type, :header, :first_record, :last_record
       
-      def initialize(oo)
+      def initialize(oo, sheet)
         @oo = oo
+        @oo.default_sheet = sheet if sheet
    #     @bookmark = Bookmark.new
   #      @bookmark.page_count += 1
         @record_list = []
@@ -130,7 +132,7 @@ module Roo
 
       def [](x)
         return @record_list[x] if @record_list[x]
-        @record_list[x]  = Record.new
+        @record_list[x] = Record.new
         @record_list[x].header = @header
         @record_list[x].record_cells = record_cells(x)
         @record_list[x]
@@ -138,7 +140,6 @@ module Roo
       
       def to_a
         result = []
-        result << @header
         self.each { |record| result << record.to_a }
         result
       end
