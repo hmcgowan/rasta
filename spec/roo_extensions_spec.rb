@@ -15,7 +15,7 @@ describe 'rasta_spreadsheet', :shared => true do
   include Roo::Spreadsheet
 end
 
-describe 'spreadsheet_without_options', :shared => true do
+describe 'spreadsheet', :shared => true do
   it_should_behave_like 'rasta_spreadsheet'
   before :all do
     @options = {}
@@ -26,7 +26,7 @@ describe 'spreadsheet_without_options', :shared => true do
 end
 
 describe 'Locate Column Headers' do
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
   
   it 'should be able to get col headers when flush' do
     @oo.default_sheet = 'col_flush'
@@ -47,7 +47,7 @@ describe 'Locate Column Headers' do
 end
 
 describe 'Locate Row Headers' do   
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
 
   it 'should be able to get row headers when flush' do
      @oo.default_sheet = 'row_flush'
@@ -68,7 +68,7 @@ describe 'Locate Row Headers' do
 end
 
 describe 'Handle Header Exceptions' do 
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
 
   it 'should throw an error on an empty sheet when parsing headers' do
     @oo.default_sheet = 'empty_sheet'
@@ -85,7 +85,7 @@ describe 'Handle Header Exceptions' do
 end
 
 describe 'Get record values' do
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
   
   it 'should be able to parse a col record' do
     @oo.default_sheet = 'col_flush'
@@ -98,7 +98,7 @@ describe 'Get record values' do
 end
 
 describe 'Small datasets' do
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
   
   it 'should be able to parse a sheet with a single col record' do
     @oo.default_sheet = 'single_cell_col'
@@ -118,29 +118,28 @@ end
 
 
 describe 'Dump records' do
-  it_should_behave_like 'spreadsheet_without_options'
+  it_should_behave_like 'spreadsheet'
 
   it 'should be able to get all of the records for a col record' do
     @oo.default_sheet = 'col_flush'
-    @oo.records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
     @oo.default_sheet = 'row_flush'
-    @oo.records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
 end
 
 describe 'Iterate over records' do
-  it_should_behave_like 'spreadsheet_without_options'
-# @oo.header
-# @oo.first_record
+  it_should_behave_like 'spreadsheet'
+
   it 'should be able to get all of the records for a col record' do
     @oo.default_sheet = 'col_flush'
-    @oo.records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
     @oo.default_sheet = 'row_flush'
-    @oo.records.to_a.should == [["a", "b"], [1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
 end
 
@@ -149,4 +148,20 @@ describe 'Spreadsheet comments' do
   
 end
 
-#TODO: Pull bookmarks out of the record so we can handle that independently
+describe 'Records should accept argument for sheet name' do
+  it_should_behave_like 'spreadsheet'
+  
+  it 'should be able to get records for an existing sheet' do 
+    @oo.records('col_flush').to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+  end
+
+  it 'should be able to get records from multiple sheets' do 
+    @oo.records('row_flush').to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records('single_cell_row').to_a.should == [[1.0]]
+  end
+  
+  it 'should allow access to single column or row' 
+  # not sure how to do this but would be nice to get a column off of a spreadsheet
+  # or the nth data row, maybe the zeroth row is always the header
+  # think a little more on it
+end
