@@ -1,15 +1,17 @@
 lib_dir = File.join(File.dirname(__FILE__), '..')
 $LOAD_PATH.unshift File.expand_path(lib_dir)
 
-require 'spec/spec_helper'
-require 'lib/rasta/extensions/roo_extensions'
 require 'roo'
+require 'spec/spec_helper'
+require 'lib/rasta/bookmark'
+require 'lib/rasta/extensions/roo_extensions'
+
 
 testfile = File.join(Spec_dir, 'spreadsheets/spreadsheet_parsing.xls')
 
 describe 'Bookmarks without commandline options' do
   before :all do
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
   end
   it 'should start with the proper defaults' do
     @bookmark.page_count.should == 0
@@ -32,7 +34,7 @@ end
 describe 'Bookmark with commandline options' do
   it 'should be able to find a bookmarked page' do
     Roo::Spreadsheet::options = {:continue => 'MyPage'}
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
     @bookmark.found_page?('foo').should == false
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(3).should == true
@@ -40,7 +42,7 @@ describe 'Bookmark with commandline options' do
   end
   it 'should be able to find a bookmarked page with record' do
     Roo::Spreadsheet::options = {:continue => 'MyPage[D]'}
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
     @bookmark.found_page?('foo').should == false
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(3).should == false
@@ -49,7 +51,7 @@ describe 'Bookmark with commandline options' do
   end
   it 'should be able to continue given number of pages' do
     Roo::Spreadsheet::options = {:pages => 1}
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
     @bookmark.exceeded_max_records?.should == false # pages = 0
@@ -60,7 +62,7 @@ describe 'Bookmark with commandline options' do
   end
   it 'should be able to continue a given number of records' do
     Roo::Spreadsheet::options = {:records => 1}
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
     @bookmark.exceeded_max_records?.should == false # records = 0
@@ -73,7 +75,7 @@ end
  
 describe 'Bookmark parsing' do
   before :all do
-    @bookmark = Roo::Spreadsheet::Bookmark.new
+    @bookmark = Rasta::Bookmark.new
   end
   it 'should parse an empty bookmark' do
     @bookmark.parse_bookmark(nil).should == [nil,nil]
@@ -97,10 +99,10 @@ describe 'Bookmark parsing' do
     @bookmark.parse_bookmark('MyPage#comment').should == ['MyPage#comment',nil]
   end
   it 'should raise an exception for an invalid bookmark' do
-    lambda{ @bookmark.parse_bookmark("[1]") }.should raise_error(Roo::Spreadsheet::BookmarkError)
+    lambda{ @bookmark.parse_bookmark("[1]") }.should raise_error(Rasta::BookmarkError)
   end
   it 'should raise an exception for an invalid bookmark record' do
-    lambda{ @bookmark.parse_bookmark("MyPage[foo1]") }.should raise_error(Roo::Spreadsheet::BookmarkError)
+    lambda{ @bookmark.parse_bookmark("MyPage[foo1]") }.should raise_error(Rasta::BookmarkError)
   end
 end
 

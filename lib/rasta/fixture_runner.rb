@@ -83,7 +83,6 @@ module Rasta
    
     def run_test_fixtures
       roo = Roo::Spreadsheet.open(@options[:spreadsheet])
-      Roo::Spreadsheet::options = @options
       Spec::Runner.options.reporter.roo = roo 
 
       @loader = ClassLoader.new(@options[:fixture_path])

@@ -3,6 +3,7 @@ require 'rasta/extensions/ruby_extensions'
 # Google does not support font information
 # right now so fake out roo to return
 # something that looks like a column fixture
+class GenericSpreadsheet; end
 class Google < GenericSpreadsheet
   def font(row,col,sheet=nil)
     begin
@@ -35,21 +36,9 @@ end
 module Roo
   module Spreadsheet
     
+    # Using the file extension, open the 
+    # spreadsheet with the right roo method
     class << self
-      # Make a place where we can access the 
-      # commandline options from the roo object
-      @@options = {}
-
-      def options
-        @@options
-      end  
-
-      def options=(x)
-        @@options = x
-      end  
-  
-      # Using the file extension, open the 
-      # spreadsheet with the right roo method
       def open(filename)
         case File.extname(filename)
         when '.xls'

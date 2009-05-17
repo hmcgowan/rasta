@@ -18,8 +18,6 @@ end
 describe 'spreadsheet', :shared => true do
   it_should_behave_like 'rasta_spreadsheet'
   before :all do
-    @options = {}
-    Roo::Spreadsheet::options = @options
     @oo = Excel.new(testfile)
     @header = ['a','b']
   end
