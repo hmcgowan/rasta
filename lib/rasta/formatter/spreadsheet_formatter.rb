@@ -14,14 +14,68 @@ module Spec
           @example_count = example_count
           @output.puts html_header
           @output.puts html_tabs
-          @output.puts html_info
           @output.puts html_footer
           @output.flush
           parser = XML::HTMLParser.file(@output.path)
           @doc = parser.parse
         end
         
-        # Defines the spreadsheet tabs
+        def example_passed(example)
+          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'passed'
+          @doc.save(@output.path)
+        end
+
+        def example_failed(example, counter, failure)
+          message = @record + "\n" + failure.exception.message
+          if failure.exception.backtrace
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "exception"
+            add_test_detail(message + failure.exception.backtrace.join("\n"))
+          else
+            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "failed" 
+            add_test_detail(message)
+          end
+          @doc.save(@output.path)
+        end
+
+        def example_pending(example, message, pending_caller)
+          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'pending'
+          add_test_detail("#{@record} #{example.description} (#{message})")
+          @doc.save(@output.path)
+        end
+        
+        # Stub out these methods because we don't need them
+        def dump_failure(*args); end
+        def dump_summary(*args); end
+        def dump_pending(*args); end
+
+  
+        # Inject a div with test detail information as a child of the html_info div
+        def add_test_detail(text)
+          @doc.find("//div[@class='#{@oo.default_sheet}-information']")[0] << div = child = XML::Node.new('div')
+          div['id'] = "#{@record}"
+          div << pre = XML::Node.new('pre')
+          pre << text_node = XML::Node.new_text(text)
+        end
+
+
+        def html_header
+          header = <<-EOS
+                  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+                  <html lang="en">
+                  <head>
+                  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+                  <title>Rasta Test Results</title>
+                  EOS
+          header += html_style + html_javascript      
+          header += <<-EOS
+                    </head>
+                    <body>
+                    <div class ="tabber">
+                    EOS
+          header
+        end
+
+        # show the spreadsheet in it's entirety
         def html_tabs
           tabs = ''
           current_sheet = @oo.default_sheet
@@ -30,61 +84,13 @@ module Spec
             tabs += "  <div class=\"tabbertab\">\n"
             tabs += "    <h2>#{sheet}</h2>\n"
             tabs += "    #{html_spreadsheet}\n\n"
+            tabs += "    <div class=\"#{sheet}-information\"></div>"
             tabs += "  </div>\n"
           end
           @oo.default_sheet = current_sheet
           tabs
         end
-        
-        # A place to put the exception, pending and other information
-        def html_info
-          "<div class=\"information\"></div>"
-        end
-        
-        # Inject a div with test detail information as a child of the html_info div
-        def add_test_detail(text)
-          @doc.find("//div[@class='information']")[0] << div = child = XML::Node.new('div')
-          div['id'] = "#{@record}"
-          div << pre = XML::Node.new('pre')
-          pre << text_node = XML::Node.new_text(@record + "\n" + text)
-        end
-
-        def example_failed(example, counter, failure)
-          if failure.exception.backtrace
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "exception"
-            add_test_detail(failure.exception.message + "\n" + failure.exception.backtrace.join("\n"))
-          else
-            @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = "failed" 
-            add_test_detail(failure.exception.message)
-          end
-          @doc.save(@output.path)
-        end
-        
-        def example_passed(example)
-          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'passed'
-          @doc.save(@output.path)
-        end
-
-        def example_pending(example, message, pending_caller)
-          @doc.find("//td[@id='#{@record}']")[0].attributes['class'] = 'pending'
-          add_test_detail(message)
-          @doc.save(@output.path)
-        end
-
-        def html_header
-              header = <<-EOS
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html lang="en">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-<title>Rasta Test Results</title>
-
-EOS
-              header += html_style + html_javascript      
-              header += "</head>\n<body>\n<div class =\"tabber\">"
-              header
-        end
-        
+       
         def html_style
 #          rasta_css = File.new(File.join(Resource_dir,'rasta.css'))
 #          css = "<style TYPE=\"text/css\" MEDIA=\"screen\">\n"
@@ -101,17 +107,17 @@ EOS
           "<script src=\"#{File.join(Resource_dir,'tabber-minimized.js')}\"> </script>"
         end
 
-        def dump_failure(*args); end
-        def dump_summary(*args); end
-        def dump_pending(*args); end
-
         def html_footer
           <<-EOS
-    </div>
-    </body>
-    </html>
+            </div>
+            </body>
+          </html>
           EOS
         end
+        
+        # probably need to change this to 
+        # use records so we can highlight the 
+        # headers with a different formatting
         
         def html_spreadsheet
           o=""
