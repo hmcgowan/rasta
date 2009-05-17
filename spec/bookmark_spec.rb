@@ -31,14 +31,16 @@ end
 
 describe 'Bookmark with commandline options' do
   it 'should be able to find a bookmarked page' do
-    @bookmark = Roo::Spreadsheet::Bookmark.new(:continue => 'MyPage')
+    Roo::Spreadsheet::options = {:continue => 'MyPage'}
+    @bookmark = Roo::Spreadsheet::Bookmark.new
     @bookmark.found_page?('foo').should == false
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(3).should == true
     @bookmark.exceeded_max_records?.should == false
   end
   it 'should be able to find a bookmarked page with record' do
-    @bookmark = Roo::Spreadsheet::Bookmark.new(:continue => 'MyPage[D]')
+    Roo::Spreadsheet::options = {:continue => 'MyPage[D]'}
+    @bookmark = Roo::Spreadsheet::Bookmark.new
     @bookmark.found_page?('foo').should == false
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(3).should == false
@@ -46,7 +48,8 @@ describe 'Bookmark with commandline options' do
     @bookmark.exceeded_max_records?.should == false
   end
   it 'should be able to continue given number of pages' do
-    @bookmark = Roo::Spreadsheet::Bookmark.new(:pages => 1)
+    Roo::Spreadsheet::options = {:pages => 1}
+    @bookmark = Roo::Spreadsheet::Bookmark.new
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
     @bookmark.exceeded_max_records?.should == false # pages = 0
@@ -56,7 +59,8 @@ describe 'Bookmark with commandline options' do
     @bookmark.exceeded_max_records?.should == true  # pages = 2
   end
   it 'should be able to continue a given number of records' do
-    @bookmark = Roo::Spreadsheet::Bookmark.new(:records => 1)
+    Roo::Spreadsheet::options = {:records => 1}
+    @bookmark = Roo::Spreadsheet::Bookmark.new
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
     @bookmark.exceeded_max_records?.should == false # records = 0
