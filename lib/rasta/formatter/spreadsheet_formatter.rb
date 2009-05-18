@@ -32,11 +32,11 @@ module Spec
           if failure.exception.backtrace
             message += failure.exception.backtrace.join("\n")
             table_cell.attributes['class'] = "exception"
-            add_test_detail(message)
+  #          add_test_detail(message)
             add_tooltip(table_cell, message)
           else
             table_cell.attributes['class'] = "failed" 
-            add_test_detail(message)
+  #          add_test_detail(message)
             add_tooltip(table_cell, message)
           end
           @doc.save(@output.path)
@@ -46,7 +46,7 @@ module Spec
           message = "#{@record} #{example.description} (#{message})"
           table_cell =  @doc.find("//td[@id='#{@record}']")[0]
           table_cell.attributes['class'] = 'pending'
-          add_test_detail(message)
+  #        add_test_detail(message)
           add_tooltip(table_cell, message)
           @doc.save(@output.path)
         end
@@ -62,12 +62,13 @@ module Spec
           @doc.find("//div[@class='#{@oo.default_sheet}-information']")[0] << div = XML::Node.new('div')
           div['id'] = "#{@record}"
           div << pre = XML::Node.new('pre')
-          pre << XML::Node.new_text(text)
+          pre << XML::Node.new_text(text.strip)
         end
 
         def add_tooltip(table_cell, text)
           table_cell << span = XML::Node.new('span')
-          span << XML::Node.new_text(text)
+          span << pre = XML::Node.new('pre')
+          pre << XML::Node.new_text(text.strip)
         end
 
         def html_header
@@ -82,7 +83,7 @@ module Spec
           header += <<-EOS
                     </head>
                     <body>
-                    <div class ="tabber">
+                    <div class="tabber">
                     EOS
           header
         end
@@ -91,18 +92,37 @@ module Spec
         def html_tabs
           tabs = ''
           current_sheet = @oo.default_sheet
+          tabs += html_summary_tab
           @oo.sheets.each do |sheet|
             @oo.default_sheet = sheet
             tabs += "  <div class=\"tabbertab\">\n"
             tabs += "    <h2>#{sheet}</h2>\n"
             tabs += "    #{html_spreadsheet}\n\n"
-            tabs += "    <div class=\"#{sheet}-information\"></div>"
+#            tabs += "    <div class=\"#{sheet}-information\"/>"
             tabs += "  </div>\n"
           end
           @oo.default_sheet = current_sheet
           tabs
         end
        
+        def html_summary_tab
+          @oo.info =~ /File: (\S+)/
+          spreadsheet_name = $1 || 'Google Spreadsheet'
+          summary = <<-EOS
+                      <div class="tabbertab">
+                        <h2>Summary</h2>
+                        <table class="summary" summary ="Summary of test results">
+                        <tr><td class="summary-title">Filename</td><td class="summary-detail-text">#{spreadsheet_name}</td></tr>
+                        <tr><td class="summary-title">Tests Run</td><td class="summary-detail-number">0</td></tr>
+                        <tr><td class="summary-title">Passed</td><td class="summary-detail-number">0</td></tr>
+                        <tr><td class="summary-title">Failed</td><td class="summary-detail-number">0</td></tr>
+                        <tr><td class="summary-title">Pending</td><td class="summary-detail-number">0</td></tr>
+                        <tr><td class="summary-title">Execution Time</td><td class="summary-detail-number">0</td></tr>
+                        </table>
+                      </div>
+                    EOS
+        end
+        
         def html_style
 #          rasta_css = File.new(File.join(Resource_dir,'rasta.css'))
 #          css = "<style TYPE=\"text/css\" MEDIA=\"screen\">\n"

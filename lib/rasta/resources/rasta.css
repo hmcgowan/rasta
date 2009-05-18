@@ -1,20 +1,18 @@
 
 td:hover {
-  background:#ffffff; 
   text-decoration:none;
 }
 td span {
   display:none; 
   padding:2px 3px; 
   margin-left:8px; 
-  width:600px;
 }
 td:hover span{
   display:inline;
   position:absolute;
-  background:#ffffff;
-  border:1px solid #cccccc;
-  color:#6c6c6c;}
+  background:#FFFFCC;
+  border:1px solid;
+  }
 
 td.row-index
 {
@@ -27,6 +25,14 @@ td.column-index
 /* border-bottom-style: solid;
  border-bottom-width: thin; */
  font-variant: small-caps;
+}
+td.summary-title
+{
+ border-right-style: solid;
+ border-right-width: thin;
+ text-align: right; 
+ font-weight: bold;
+ padding:2px 3px; 
 }
 
 td.passed
