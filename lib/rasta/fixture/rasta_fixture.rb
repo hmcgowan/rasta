@@ -1,4 +1,5 @@
 require 'rasta/fixture/base_fixture'
+require 'rasta/fixture/rspec_helpers'
 
 module Rasta
   module Fixture
@@ -84,11 +85,11 @@ module Rasta
           end
          
           if test_fixture.pending
-            it "#{test_method_name} should == #{value.to_s}" do 
+            it "#{test_method_name} should match #{value.to_s}" do 
               pending(test_fixture.pending)
             end
           else
-            it "#{test_method_name} should == #{value.to_s}" do 
+            it "#{test_method_name} should match #{value.to_s}" do 
               run_rspec_test_case
             end
           end
@@ -121,35 +122,6 @@ module Rasta
         end  
       end
       
-      module TestCaseHelperMethods
-        @@actual_value = nil
-        
-        def run_rspec_test_case
-          if @exception_expected
-            if @exception
-              lambda{ @fixture.send @header }.should raise_error(@exception, @exception_message)
-            else
-              lambda{ @fixture.send @header }.should raise_error
-            end
-          else
-            lambda{ @@actual_value = @fixture.send @header }.should_not raise_error
-            if @cell == 'nil'
-              expected_value = nil
-            else
-              expected_value = @cell
-            end
-            case expected_value
-            when /^(<=|>=|>|<)(.+)/  
-              eval("@@actual_value.should #{$1} #{$2}")
-            when Regexp
-              @@actual_value.should =~ expected_value
-            else
-              @@actual_value.should == expected_value
-            end
-          end
-        end
-      end 
- 
     end 
   end  
 end

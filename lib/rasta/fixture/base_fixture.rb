@@ -27,10 +27,6 @@ module Rasta
         Spec::Runner.options.reporter.failure_count
       end
       
-#      def select_output_cell(c, f)
-#        Spec::Runner.options.reporter.set_current_spreadsheet_cell(c,f)
-#      end
-      
       # Iterate over spreadsheet cells, create the
       # test fixtures and call your test. Generally
       # you will need to iterate over the spreadsheet

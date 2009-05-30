@@ -42,7 +42,7 @@ module Spec
           @doc.save(@output.path)
         end
 
-        def example_pending(example, message, pending_caller)
+        def example_pending(example, message)
           message = "#{@record} #{example.description} (#{message})"
           table_cell =  @doc.find("//td[@id='#{@record}']")[0]
           table_cell.attributes['class'] = 'pending'

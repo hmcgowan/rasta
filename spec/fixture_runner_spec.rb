@@ -1,20 +1,17 @@
-lib_dir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(lib_dir)
+Spec_dir = File.join(File.dirname(__FILE__))
+require File.join(Spec_dir, 'spec_helper')
 
-require 'spec/spec_helper'
 require 'rasta/fixture_runner'
-
-FixtureDir = File.join(Spec_dir, 'sandbox', 'fixtures')
 
 ##### NEED TO MAKE SURE FIXTURE PATH IS REQUIRED
 
 describe 'Class Loader' do
   it 'should load a directory of fixtures' do
-    @loader = Rasta::ClassLoader.new(FixtureDir)
+    @loader = Rasta::ClassLoader.new(Fixture_dir)
     (@loader.load_test_fixtures - ['FixtureA', 'FixtureB']).should == [] 
   end
   it 'should load fixtures from a file' do
-    @loader = Rasta::ClassLoader.new(File.join(FixtureDir, 'TestFixture.rb'))
+    @loader = Rasta::ClassLoader.new(File.join(Fixture_dir, 'TestFixture.rb'))
     (@loader.load_test_fixtures - ['FixtureA', 'FixtureB']).should == []
   end
   

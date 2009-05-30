@@ -1,10 +1,9 @@
-lib_dir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(lib_dir)
+Spec_dir = File.join(File.dirname(__FILE__))
+require File.join(Spec_dir, 'spec_helper')
 
 require 'roo'
-require 'spec/spec_helper'
-require 'lib/rasta/bookmark'
-require 'lib/rasta/extensions/roo_extensions'
+require 'rasta/bookmark'
+require 'rasta/extensions/roo_extensions'
 
 
 testfile = File.join(Spec_dir, 'spreadsheets/spreadsheet_parsing.xls')

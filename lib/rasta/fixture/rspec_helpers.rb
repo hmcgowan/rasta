@@ -16,8 +16,14 @@ module TestCaseHelperMethods
         expected_value = @cell
       end
       case expected_value
-      when /^(<=|>=|>|<)(.+)/  
-        eval("@@actual_value.should #{$1} #{$2}")
+      when /^\s*<=(.+)/
+        @@actual_value.should be_less_than_or_equal_to($1.to_f)
+      when /^\s*>=(.+)/
+        @@actual_value.should be_greater_than_or_equal_to($1.to_f)
+      when /^\s*<(.+)/
+        @@actual_value.should be_less_than($1.to_f)
+      when /^\s*>(.+)/
+        @@actual_value.should be_greater_than($1.to_f)
       when Regexp
         @@actual_value.should =~ expected_value
       else

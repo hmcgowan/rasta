@@ -1,7 +1,6 @@
-lib_dir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(lib_dir)
+Spec_dir = File.join(File.dirname(__FILE__))
+require File.join(Spec_dir, 'spec_helper')
 
-require 'spec/spec_helper'
 require 'rasta/extensions/ruby_extensions'
 
 describe 'Convert strings to dataypes' do

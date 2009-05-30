@@ -1,7 +1,6 @@
-Root_dir = File.join(File.dirname(__FILE__), '..')
-$LOAD_PATH.unshift File.expand_path(Root_dir)
+Spec_dir = File.join(File.dirname(__FILE__))
+require File.join(Spec_dir, 'spec_helper')
 
-require 'spec/spec_helper'
 require 'roo'
 require 'lib/rasta/extensions/roo_extensions'
 

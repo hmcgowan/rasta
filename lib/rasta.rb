@@ -30,20 +30,29 @@ module Rasta
       builder.add_choice(:help, :type=>:boolean, :default=>false) do | command_line |
         command_line.uses_option("-h", "--help", "Show detailed usage.")
       end
-      builder.add_choice(:spreadsheet) { | command_line |
-        command_line.uses_arg
-      } 
+      builder.add_choice(:spreadsheets) { | command_line |
+        command_line.uses_arglist
+      }
     end
     
-    def execute
-      evaluate_choices
+    def execute(choices = {})
+      postprocess_choices(choices)
       clear_commandline_arguments
       start_interrupt_handler        
       run_tests
       exit_gracefully
     end
 
-    def evaluate_choices    
+    # We're not using the built-in postprocess_user_choices because
+    # we want to process after we've merged in any choices diectly specified
+    # if we call this through ruby code and not a commandline
+    def postprocess_choices(choices)
+      if choices == {}
+        @user_choices[:runtime_environment] = :shell
+      else
+        @user_choices[:runtime_environment] = :script
+        @user_choices.merge!(choices)
+      end  
       if @user_choices[:help]
         puts @user_choices[:usage]
         exit 0
@@ -52,11 +61,11 @@ module Rasta
         puts Rasta::VERSION::DESCRIPTION
         exit 0
       end
+      @user_choices[:spreadsheets] << @user_choices[:spreadsheet] if @user_choices[:spreadsheet] 
       @user_choices[:results_path] = File.expand_path(@user_choices[:results_path]) 
       @user_choices[:fixture_path] = File.expand_path(@user_choices[:fixture_path])
       raise ArgumentError, "argument '--fixture-path' must be specified and a valid directory" unless @user_choices[:fixture_path] && File.directory?(@user_choices[:fixture_path])
     end
-    private :evaluate_choices
     
     # If we don't clear out ARGV, then RSPEC 
     # will try to use arguments as RSPEC inputs
