@@ -1,3 +1,6 @@
+table.summary-errors {
+ width: 100%
+}
 
 td:hover {
   text-decoration:none;
@@ -35,6 +38,20 @@ td.summary-title
  padding:2px 3px; 
 }
 
+tr.summary-failed-detail
+{
+ border-left: 5px solid #C20000;
+ border-bottom: 1px solid #C20000;
+ color: #C20000; 
+ background: #FFFBD3;
+}
+
+tr.summary-failed-header
+{
+ color: #FFFFFF; 
+ background: #C40D0D;
+}
+
 td.passed
 {
  background-color: #66FF99
@@ -64,6 +81,21 @@ font-variant: small-caps;
  font-weight: bold;
 }
 
+.ruby {
+ font-size: 12px;
+ font-family: monospace;
+ color: white;
+ background-color: black;
+ padding: 0.1em 0 0.2em 0;
+}
+
+.ruby .offending {
+ width: 100%;
+ color: #000000;
+ background-color:  #FFFF66;
+ font-weight: bold;
+ padding: 0.1em 0 0.2em 0;
+}
 
 /* TABBER CSS */
 

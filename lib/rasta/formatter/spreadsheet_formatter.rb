@@ -10,6 +10,8 @@ module Spec
       class SpreadsheetFormatter <  Spec::Runner::Formatter::BaseTextFormatter
         attr_accessor :oo, :record
         
+        begin; require 'syntax/convertors/html'; @@converter = Syntax::Convertors::HTML.for_syntax "ruby"; rescue LoadError => e; @@converter = NullConverter.new; end
+        
         def start(example_count)
           @example_count = example_count
           @output.puts html_header
@@ -27,48 +29,79 @@ module Spec
         end
 
         def example_failed(example, counter, failure)
-          message = @record + "\n" + failure.exception.message
           table_cell = @doc.find("//td[@id='#{@record}']")[0]
-          if failure.exception.backtrace
-            message += failure.exception.backtrace.join("\n")
-            table_cell.attributes['class'] = "exception"
-  #          add_test_detail(message)
-            add_tooltip(table_cell, message)
-          else
-            table_cell.attributes['class'] = "failed" 
-  #          add_test_detail(message)
-            add_tooltip(table_cell, message)
-          end
-          @doc.save(@output.path)
-        end
-
-        def example_pending(example, message)
-          message = "#{@record} #{example.description} (#{message})"
-          table_cell =  @doc.find("//td[@id='#{@record}']")[0]
-          table_cell.attributes['class'] = 'pending'
-  #        add_test_detail(message)
-          add_tooltip(table_cell, message)
+          table_cell.attributes['class'] = failure_type(failure)
+          add_test_failure_summary(example, failure)
+          add_test_failure_tooltip(table_cell, failure)
           @doc.save(@output.path)
         end
         
+        def example_pending(example, message)
+          message = "#{@record} #{example.description} (#{message})"
+          table_cell =  @doc.find("//td[@id='#{@record}']")[0]
+          table_cell['class'] = 'pending'
+  #        add_test_detail(message)
+          @doc.save(@output.path)
+        end
+
         # Stub out these methods because we don't need them
         def dump_failure(*args); end
         def dump_summary(*args); end
         def dump_pending(*args); end
-
-  
-        # Inject a div with test detail information as a child of the html_info div
-        def add_test_detail(text)
-          @doc.find("//div[@class='#{@oo.default_sheet}-information']")[0] << div = XML::Node.new('div')
-          div['id'] = "#{@record}"
-          div << pre = XML::Node.new('pre')
-          pre << XML::Node.new_text(text.strip)
+        
+        def add_test_failure_summary (example, failure)
+          summary_table = @doc.find("//table[@class='summary-errors']")[0] 
+          summary_table << tr = XML::Node.new('tr')
+          tr['class'] = 'summary-failed-header'
+          add_table_cell(tr, @record + ': ' + example.description)
+          summary_table << tr = XML::Node.new('tr')
+          tr['class'] = 'summary-failed-detail'
+          add_table_cell(tr, failure_message(failure), {'colspan'=> '100%'})
+          summary_table << tr = XML::Node.new('tr')
+          add_code_snippet(tr, failure) if failure.exception.backtrace         
         end
-
-        def add_tooltip(table_cell, text)
+        
+        def add_test_failure_tooltip(table_cell, failure)
           table_cell << span = XML::Node.new('span')
           span << pre = XML::Node.new('pre')
-          pre << XML::Node.new_text(text.strip)
+          pre << @record + "\n" + failure_message(failure)
+        end
+
+        def add_table_cell(parent, text, attributes={})
+          parent << td = XML::Node.new('td')
+          attributes.each_key { |k| td[k] = attributes[k] }
+          text.split("\n").each do |t|
+            td << br = XML::Node.new('div')
+            br << t.strip
+          end
+        end
+
+        def add_code_snippet(parent, failure)
+          require 'spec/runner/formatter/snippet_extractor'
+          @snippet_extractor ||= SnippetExtractor.new
+          parent << td = XML::Node.new('td')
+          td << pre = XML::Node.new('pre') 
+          pre['class'] = 'ruby'
+          pre << code = XML::Node.new('code') 
+          (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0])
+          raw_code.split("\n").each_with_index do |line, l|
+            line = "#{l + linenum - 2}: " + line
+            code << line_p = XML::Node.new('p') 
+            if l == 2
+             line_p['class'] = 'offending' 
+            else
+              line_p['class'] = 'linenum'
+            end
+            code << line
+          end
+        end
+        
+        def failure_message(failure)
+          failure.exception.backtrace ? failure.exception.message + "\n" + failure.exception.backtrace.join("\n") : failure.exception.message 
+        end
+
+        def failure_type(failure)
+          failure.exception.backtrace ? 'exception' : 'failed'
         end
 
         def html_header
@@ -93,6 +126,7 @@ module Spec
           tabs = ''
           current_sheet = @oo.default_sheet
           tabs += html_summary_tab
+          tabs += html_errors_tab
           @oo.sheets.each do |sheet|
             @oo.default_sheet = sheet
             tabs += "  <div class=\"tabbertab\">\n"
@@ -110,17 +144,33 @@ module Spec
           spreadsheet_name = $1 || 'Google Spreadsheet'
           summary = <<-EOS
                       <div class="tabbertab">
-                        <h2>Summary</h2>
-                        <table class="summary" summary ="Summary of test results">
-                        <tr><td class="summary-title">Filename</td><td class="summary-detail-text">#{spreadsheet_name}</td></tr>
-                        <tr><td class="summary-title">Tests Run</td><td class="summary-detail-number">0</td></tr>
-                        <tr><td class="summary-title">Passed</td><td class="summary-detail-number">0</td></tr>
-                        <tr><td class="summary-title">Failed</td><td class="summary-detail-number">0</td></tr>
-                        <tr><td class="summary-title">Pending</td><td class="summary-detail-number">0</td></tr>
-                        <tr><td class="summary-title">Execution Time</td><td class="summary-detail-number">0</td></tr>
-                        </table>
+                        <div class="summary-counts">
+                          <h2>Summary</h2>
+                          <table class="summary" summary ="Summary of test results">
+                          <tr><td class="summary-title">Filename</td><td class="summary-detail-text">#{spreadsheet_name}</td></tr>
+                          <tr><td class="summary-title">Tests Run</td><td class="summary-detail-number">0</td></tr>
+                          <tr><td class="summary-title">Passed</td><td class="summary-detail-number">0</td></tr>
+                          <tr><td class="summary-title">Failed</td><td class="summary-detail-number">0</td></tr>
+                          <tr><td class="summary-title">Pending</td><td class="summary-detail-number">0</td></tr>
+                          <tr><td class="summary-title">Execution Time</td><td class="summary-detail-number">0</td></tr>
+                          </table>
+                        </div>
+                        <br><br>
                       </div>
                     EOS
+        end
+
+        def html_errors_tab
+          <<-EOS
+              <div class="tabbertab">
+                <div class="errors">
+                  <h2>Errors</h2>
+                  <div class="summary-errors">
+                    <table class="summary-errors" summary="Detailed summary of test results"/>
+                  </div>
+                </div>
+              </div>
+            EOS
         end
         
         def html_style
@@ -147,8 +197,6 @@ module Spec
           EOS
         end
         
-        #need to look at refactoring because we should be able to ust use records
-        # since we need them anyway
         def html_spreadsheet
           o=""
           sheet = @oo.default_sheet

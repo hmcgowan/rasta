@@ -27,6 +27,7 @@ begin
     s.add_dependency "rspec", [">= 1.1.11"]
     s.add_dependency "hmcgowan-roo", [">= 1.3.1"]
     s.add_dependency "user-choices", [">= 1.1.6"]
+    s.add_dependency "libxml-ruby", [">= 1.1.3"]
 
     s.has_rdoc = true
     s.extra_rdoc_files = ["README", "LICENSE"]

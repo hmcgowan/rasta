@@ -1,11 +1,10 @@
 module Rasta
   module Fixture
     module BaseFixture
-      include Rasta::Fixture::Metrics
        
       def initialize_test_fixture(roo_reference)
         @oo = roo_reference
-        @metrics = Counter.new
+        @metrics = Rasta::Fixture::Metrics.new
       end
        
       # Call into rspec to run the current set of tests
