@@ -5,8 +5,6 @@ table.summary-errors {
 
 td.summary-title
 {
- border-right-style: solid;
- border-right-width: thin;
  text-align: right; 
  font-weight: bold;
  padding:2px 3px; 

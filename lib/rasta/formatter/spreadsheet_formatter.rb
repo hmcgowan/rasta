@@ -14,6 +14,11 @@ module Spec
         
         def start(example_count)
           @example_count = example_count
+          @total_count = 0
+          @total_passed = 0
+          @total_failed = 0
+          @total_exception = 0
+          @total_pending = 0
           @output.puts html_header
           @output.puts html_tabs
           @output.puts html_footer
@@ -22,13 +27,33 @@ module Spec
           @doc = parser.parse
         end
         
+        def update_totals(name, value)
+          @total_count += 1
+          @doc.find("//td[@class='total-count']")[0].content = @total_count.to_s
+          @doc.find("//td[@class='#{name}']")[0].content = value.to_s
+        end  
+          
+        def update_passed_counts
+          update_totals('total-passed', @total_passed += 1)
+        end
+
+        def update_failed_counts
+          update_totals('total-failed', @total_failed += 1)
+        end
+        
+        def update_pending_counts
+          update_totals('total-pending', @total_pending += 1)
+        end
+
         def example_passed(example)
+          update_passed_counts
           table_cell = @doc.find("//td[@id='#{@record}']")[0]
           table_cell.attributes['class'] = 'passed'
           @doc.save(@output.path)
         end
 
         def example_failed(example, counter, failure)
+          update_failed_counts
           table_cell = @doc.find("//td[@id='#{@record}']")[0]
           table_cell.attributes['class'] = failure_type(failure)
           add_test_failure_summary(example, failure)
@@ -37,6 +62,7 @@ module Spec
         end
         
         def example_pending(example, message)
+          update_pending_counts
           table_cell =  @doc.find("//td[@id='#{@record}']")[0]
           table_cell['class'] = 'pending'
           add_test_pending_summary(example, message)
@@ -152,11 +178,11 @@ module Spec
                           <h2>Summary</h2>
                           <table class="summary" summary ="Summary of test results">
                           <tr><td class="summary-title">Filename</td><td class="summary-detail-text">#{spreadsheet_name}</td></tr>
-                          <tr><td class="summary-title">Tests Run</td><td class="summary-detail-number">0</td></tr>
-                          <tr><td class="summary-title">Passed</td><td class="summary-detail-number">0</td></tr>
-                          <tr><td class="summary-title">Failed</td><td class="summary-detail-number">0</td></tr>
-                          <tr><td class="summary-title">Pending</td><td class="summary-detail-number">0</td></tr>
-                          <tr><td class="summary-title">Execution Time</td><td class="summary-detail-number">0</td></tr>
+                          <tr><td class="summary-title">Tests Run</td><td class="total-count">0</td></tr>
+                          <tr><td class="summary-title">Passed</td><td class="total-passed">0</td></tr>
+                          <tr><td class="summary-title">Failed</td><td class="total-failed">0</td></tr>
+                          <tr><td class="summary-title">Pending</td><td class="total-pending">0</td></tr>
+                          <tr><td class="summary-title">Execution Time</td><td class="total-time">0</td></tr>
                           </table>
                         </div>
                         <br><br>
