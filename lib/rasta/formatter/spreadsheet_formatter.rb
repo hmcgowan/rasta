@@ -37,10 +37,9 @@ module Spec
         end
         
         def example_pending(example, message)
-          message = "#{@record} #{example.description} (#{message})"
           table_cell =  @doc.find("//td[@id='#{@record}']")[0]
           table_cell['class'] = 'pending'
-  #        add_test_detail(message)
+          add_test_pending_summary(example, message)
           @doc.save(@output.path)
         end
 
@@ -48,39 +47,44 @@ module Spec
         def dump_failure(*args); end
         def dump_summary(*args); end
         def dump_pending(*args); end
-        
-        def add_test_failure_summary (example, failure)
-          summary_table = @doc.find("//table[@class='summary-errors']")[0] 
-          summary_table << tr = XML::Node.new('tr')
-          tr['class'] = 'summary-failed-header'
-          add_table_cell(tr, @record + ': ' + example.description)
-          summary_table << tr = XML::Node.new('tr')
-          tr['class'] = 'summary-failed-detail'
-          add_table_cell(tr, failure_message(failure), {'colspan'=> '100%'})
-          summary_table << tr = XML::Node.new('tr')
-          add_code_snippet(tr, failure) if failure.exception.backtrace         
-        end
-        
+    
         def add_test_failure_tooltip(table_cell, failure)
           table_cell << span = XML::Node.new('span')
           span << pre = XML::Node.new('pre')
           pre << @record + "\n" + failure_message(failure)
         end
-
-        def add_table_cell(parent, text, attributes={})
-          parent << td = XML::Node.new('td')
-          attributes.each_key { |k| td[k] = attributes[k] }
-          text.split("\n").each do |t|
-            td << br = XML::Node.new('div')
-            br << t.strip
-          end
+    
+        def add_test_pending_summary (example, message)
+          summary = @doc.find("//div[@class='summary-errors']")[0] 
+          summary << header = XML::Node.new('div')
+          header['class'] = 'error-pending-header'
+          header << @record + ': ' + example.description
+          summary << detail = XML::Node.new('div')
+          detail['class'] = 'error-pending-detail'
+          detail << pre = XML::Node.new('pre')
+          pre << message
         end
 
-        def add_code_snippet(parent, failure)
+        def add_test_failure_summary (example, failure)
+          summary = @doc.find("//div[@class='summary-errors']")[0] 
+          summary << header = XML::Node.new('div')
+          header['class'] = 'error-' + failure_type(failure) + '-header'
+          header << @record + ': ' + example.description
+          summary << detail = XML::Node.new('div')
+          detail['class'] = 'error-' + failure_type(failure) + '-detail'
+          detail << pre = XML::Node.new('pre')
+          pre << failure_message(failure)
+          if failure.exception.backtrace
+            summary << exception = XML::Node.new('div')
+            exception['class'] = 'error-failed-exception'
+            exception << code_snippet(failure) 
+          end  
+        end
+        
+        def code_snippet(failure)
           require 'spec/runner/formatter/snippet_extractor'
           @snippet_extractor ||= SnippetExtractor.new
-          parent << td = XML::Node.new('td')
-          td << pre = XML::Node.new('pre') 
+          pre = XML::Node.new('pre') 
           pre['class'] = 'ruby'
           pre << code = XML::Node.new('code') 
           (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0])
@@ -94,6 +98,7 @@ module Spec
             end
             code << line
           end
+          pre
         end
         
         def failure_message(failure)
@@ -132,7 +137,6 @@ module Spec
             tabs += "  <div class=\"tabbertab\">\n"
             tabs += "    <h2>#{sheet}</h2>\n"
             tabs += "    #{html_spreadsheet}\n\n"
-#            tabs += "    <div class=\"#{sheet}-information\"/>"
             tabs += "  </div>\n"
           end
           @oo.default_sheet = current_sheet
@@ -165,9 +169,7 @@ module Spec
               <div class="tabbertab">
                 <div class="errors">
                   <h2>Errors</h2>
-                  <div class="summary-errors">
-                    <table class="summary-errors" summary="Detailed summary of test results"/>
-                  </div>
+                  <div class="summary-errors"/>
                 </div>
               </div>
             EOS

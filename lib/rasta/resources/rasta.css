@@ -1,34 +1,8 @@
+/* Summary Tab */
 table.summary-errors {
  width: 100%
 }
 
-td:hover {
-  text-decoration:none;
-}
-td span {
-  display:none; 
-  padding:2px 3px; 
-  margin-left:8px; 
-}
-td:hover span{
-  display:inline;
-  position:absolute;
-  background:#FFFFCC;
-  border:1px solid;
-  }
-
-td.row-index
-{
-/* border-right-style: solid;
- border-right-width: thin; */
- font-variant: small-caps;
-}
-td.column-index
-{
-/* border-bottom-style: solid;
- border-bottom-width: thin; */
- font-variant: small-caps;
-}
 td.summary-title
 {
  border-right-style: solid;
@@ -38,18 +12,94 @@ td.summary-title
  padding:2px 3px; 
 }
 
-tr.summary-failed-detail
+/* Error Tab */
+
+div.error-sheet-header
 {
- border-left: 5px solid #C20000;
- border-bottom: 1px solid #C20000;
- color: #C20000; 
- background: #FFFBD3;
+ padding: 3px;
+ font-weight: bold;
+ color: #FFFFFF; background: #C40D0D;
 }
 
-tr.summary-failed-header
+
+div.error-failed-header
 {
- color: #FFFFFF; 
- background: #C40D0D;
+ padding: 3px;
+ margin: 0 0 0 5px;
+ font-weight: bold;
+ color: #FFFFFF; background: #C40D0D;
+}
+
+div.error-failed-detail
+{
+ margin: 5px 0 5px 10px;
+ padding: 3px 3px 3px 18px;
+ border-left: 5px solid #C20000;
+ border-bottom: 1px solid #C20000;
+ color: #C20000; background: #FFFBD3;
+}
+
+div.error-exception-header
+{
+ padding: 3px;
+ margin: 0 0 0 5px;
+ font-weight: bold;
+ color: #000000; background: #FAF834;
+}
+
+div.error-exception-detail
+{
+ margin: 5px 0 5px 10px;
+ padding: 3px 3px 3px 18px;
+ border-left: 5px solid #FAF834;
+ border-bottom: 1px solid #FAF834;
+ background: #FCFB98; color: #131313;
+}
+
+div.error-pending-header
+{
+ margin: 0 0 0 5px;
+ padding: 3px;
+ font-weight: bold;
+ color: #FFFFFF; background: #000099;
+}
+
+div.error-pending-detail
+{
+ margin: 5px 0 5px 10px;
+ padding: 3px 3px 3px 18px;
+ border-left: 5px solid #000099;
+ border-bottom: 1px solid #000099;
+ color: #000099; background: #CCCCFF;
+}
+
+.ruby {
+ margin: 5px 0 5px 10px;
+ padding: 3px 3px 3px 18px;
+ font-size: 12px;
+ font-family: monospace;
+ color: white;
+ background-color: black;
+ padding: 0.1em 0 0.2em 0;
+}
+
+.ruby .offending {
+ width: 100%;
+ color: #000000;
+ background-color: #CCCCCC;
+ padding: 0.1em 0 0.2em 0;
+}
+
+
+/* Spreadsheet output */
+td.row-index
+{
+ font-variant: small-caps;
+}
+
+td.column-index
+{
+ font-variant: small-caps;
 }
 
 td.passed
@@ -80,22 +130,21 @@ font-variant: small-caps;
  background-color: #CCCCCC;
  font-weight: bold;
 }
-
-.ruby {
- font-size: 12px;
- font-family: monospace;
- color: white;
- background-color: black;
- padding: 0.1em 0 0.2em 0;
+td:hover {
+  text-decoration:none;
 }
-
-.ruby .offending {
- width: 100%;
- color: #000000;
- background-color:  #FFFF66;
- font-weight: bold;
- padding: 0.1em 0 0.2em 0;
+td span {
+  display:none; 
+  padding:2px 3px; 
+  margin-left:8px; 
 }
+td:hover span{
+  display:inline;
+  position:absolute;
+  background:#FFFFCC;
+  border:1px solid;
+  }
+
 
 /* TABBER CSS */
 
