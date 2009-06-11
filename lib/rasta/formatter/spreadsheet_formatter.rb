@@ -10,8 +10,6 @@ module Spec
       class SpreadsheetFormatter <  Spec::Runner::Formatter::BaseTextFormatter
         attr_accessor :oo, :record
         
-        begin; require 'syntax/convertors/html'; @@converter = Syntax::Convertors::HTML.for_syntax "ruby"; rescue LoadError => e; @@converter = NullConverter.new; end
-        
         def start(example_count)
           @example_count = example_count
           @total_count = 0
@@ -206,7 +204,7 @@ module Spec
 #          css = "<style TYPE=\"text/css\" MEDIA=\"screen\">\n"
 #          css += rasta_css.read
 #          css += "</style>\n"
-          "<LINK href=\"#{File.join(Resource_dir,'rasta.css')}\" rel=\"stylesheet\" type=\"text/css\">"
+          "<LINK href=\"file://#{File.join(Resource_dir,'rasta.css')}\" rel=\"stylesheet\" type=\"text/css\">"
         end
 
         def html_javascript
@@ -214,7 +212,7 @@ module Spec
           #javascript = "<script TYPE=\"text/javascript\">\n"
           #javascript += tabber.read
           #javascript += "</script>\n"
-          "<script src=\"#{File.join(Resource_dir,'tabber-minimized.js')}\"> </script>"
+          "<script src=\"file://#{File.join(Resource_dir,'tabber-minimized.js')}\"> </script>"
         end
 
         def html_footer
