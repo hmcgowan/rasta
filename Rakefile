@@ -25,7 +25,7 @@ begin
     s.executables        = ['rasta']
     s.files              =  FileList[ "{bin,lib,spec}/**/*"]
     s.add_dependency "rspec", [">= 1.1.11"]
-    s.add_dependency "hmcgowan-roo", [">= 1.3.1"]
+    s.add_dependency "roo", [">= 1.3.5"]
     s.add_dependency "user-choices", [">= 1.1.6"]
     s.add_dependency "libxml-ruby", [">= 1.1.3"]
 
