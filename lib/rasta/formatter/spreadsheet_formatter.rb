@@ -77,6 +77,7 @@ module Spec
         def example_passed(example)
            update_passed_counts
            cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           cell['class'] = 'result'
            cell['status'] = 'passed'
            save_xml
         end
@@ -84,7 +85,8 @@ module Spec
         def example_failed(example, counter, failure)
            update_failed_counts
            cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
-           cell.attributes['status'] = failure_type(failure)
+           cell['class'] = 'result'
+           cell['status'] = failure_type(failure)
            add_test_failure_summary(example, failure)
            add_test_failure_tooltip(cell, failure)
            save_xml
@@ -93,6 +95,7 @@ module Spec
         def example_pending(example, message)
            update_pending_counts
            cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           cell['class'] = 'result'
            cell['status'] = 'pending'
            add_test_pending_summary(example, message)
            save_xml
@@ -241,12 +244,7 @@ module Spec
               cell['status'] = 'not_run' 
             end
             value = @oo.cell(row_name,col_name).to_s
-            puts value
-            if value == ''
-              cell << ' '
-            else
-              cell << value
-            end
+            cell << value unless value == ''
           end
         end
                 

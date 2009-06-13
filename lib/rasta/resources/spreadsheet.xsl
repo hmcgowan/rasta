@@ -4,11 +4,22 @@
   <xsl:template match="sheet">
     <div class="tabbertab">
 	  <h2><xsl:value-of select="@id"/></h2>
-	  <table border="1">
+	  <table border="0" cellspacing="1" cellpadding="5">
 	    <xsl:for-each select="row">
 	      <tr>
 	        <xsl:for-each select="cell">
-              <td><xsl:value-of select="."/></td>
+              <td>
+  		        <xsl:attribute name="class">
+				  <xsl:choose>
+				  <xsl:when test="@status"> <xsl:value-of select="@status"/> </xsl:when>
+				  <xsl:otherwise> <xsl:value-of select="@class"/> </xsl:otherwise>
+				  </xsl:choose>
+			    </xsl:attribute>
+			    <xsl:if test="contains(.,' ') = false">
+	  		        <xsl:attribute name="align">center</xsl:attribute>
+                </xsl:if>
+				<xsl:value-of select="."/>
+	          </td>
 	        </xsl:for-each> 
 		  </tr>
 	    </xsl:for-each>

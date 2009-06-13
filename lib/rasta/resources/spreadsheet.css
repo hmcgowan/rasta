@@ -98,6 +98,7 @@ td.row-index
 td.column-index
 {
  font-variant: small-caps;
+ text-align: center
 }
 
 td.passed
