@@ -28,6 +28,7 @@ begin
     s.add_dependency "roo", [">= 1.3.5"]
     s.add_dependency "user-choices", [">= 1.1.6"]
     s.add_dependency "libxml-ruby", [">= 1.1.3"]
+    s.add_dependency "libxslt-ruby", [">= 0.9.2"]
 
     s.has_rdoc = true
     s.extra_rdoc_files = ["README", "LICENSE"]
