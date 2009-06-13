@@ -1,14 +1,26 @@
 # TODO: put name of spreadsheet on the page
 # and think about how to handle multiple spreadsheets
+#
+# handle xslt paths
+# put tabber back into xsl
+# make write use libxml-ruby and not print to file
+#
 
 Resource_dir = File.join(File.dirname(__FILE__), '..', 'resources')
 require 'spec/runner/formatter/base_formatter'
 require 'xml'
+require 'xslt'
+
 module Spec
   module Runner
     module Formatter
       class SpreadsheetFormatter <  Spec::Runner::Formatter::BaseTextFormatter
         attr_accessor :oo, :record
+        
+        def record=(x)
+          @record = x
+          (@sheet, @cell) = @record.split('-')
+        end
         
         def start(example_count)
           @example_count = example_count
@@ -17,18 +29,37 @@ module Spec
           @total_failed = 0
           @total_exception = 0
           @total_pending = 0
-          @output.puts html_header
-          @output.puts html_tabs
-          @output.puts html_footer
+          @output.puts xml_header
           @output.flush
-          parser = XML::HTMLParser.file(@output.path)
+          XML.indent_tree_output = true
+          XML.default_tree_indent_string = '  '
+          parser = XML::Parser.file(@output.path)
           @doc = parser.parse
+          add_xml_worksheets
+          save_xml
+        end
+        
+        def close
+          # Create a new XSL Transform
+          stylesheet_doc = XML::Document.file(File.join(Resource_dir, 'spreadsheet.xsl'))
+          stylesheet = LibXSLT::XSLT::Stylesheet.new(stylesheet_doc)
+
+          # Transform the xml document
+          transform = stylesheet.apply(@doc, {:root => "ROOT", :back => "BACK"})
+          parser = XML::Parser.document(transform)
+          @doc = parser.parse
+          save_xml(@output.path.gsub('xml','html'))
+        end
+        
+        
+        def save_xml(filename = @output.path)
+          @doc.save(filename, :indent => true, :encoding => XML::Encoding::UTF_8)
         end
         
         def update_totals(name, value)
-          @total_count += 1
-          @doc.find("//td[@class='total-count']")[0].content = @total_count.to_s
-          @doc.find("//td[@class='#{name}']")[0].content = value.to_s
+          # @total_count += 1
+          # @doc.find("//td[@class='total-count']")[0].content = @total_count.to_s
+          # @doc.find("//td[@class='#{name}']")[0].content = value.to_s
         end  
           
         def update_passed_counts
@@ -44,27 +75,27 @@ module Spec
         end
 
         def example_passed(example)
-          update_passed_counts
-          table_cell = @doc.find("//td[@id='#{@record}']")[0]
-          table_cell.attributes['class'] = 'passed'
-          @doc.save(@output.path)
+           update_passed_counts
+           cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           cell['status'] = 'passed'
+           save_xml
         end
 
         def example_failed(example, counter, failure)
-          update_failed_counts
-          table_cell = @doc.find("//td[@id='#{@record}']")[0]
-          table_cell.attributes['class'] = failure_type(failure)
-          add_test_failure_summary(example, failure)
-          add_test_failure_tooltip(table_cell, failure)
-          @doc.save(@output.path)
+           update_failed_counts
+           cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           cell.attributes['status'] = failure_type(failure)
+           add_test_failure_summary(example, failure)
+           add_test_failure_tooltip(cell, failure)
+           save_xml
         end
         
         def example_pending(example, message)
-          update_pending_counts
-          table_cell =  @doc.find("//td[@id='#{@record}']")[0]
-          table_cell['class'] = 'pending'
-          add_test_pending_summary(example, message)
-          @doc.save(@output.path)
+           update_pending_counts
+           cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           cell['status'] = 'pending'
+           add_test_pending_summary(example, message)
+           save_xml
         end
 
         # Stub out these methods because we don't need them
@@ -72,37 +103,37 @@ module Spec
         def dump_summary(*args); end
         def dump_pending(*args); end
     
-        def add_test_failure_tooltip(table_cell, failure)
-          table_cell << span = XML::Node.new('span')
-          span << pre = XML::Node.new('pre')
-          pre << @record + "\n" + failure_message(failure)
+        def add_test_failure_tooltip(cell, failure)
+          # cell << span = XML::Node.new('span')
+          # span << pre = XML::Node.new('pre')
+          # pre << @record + "\n" + failure_message(failure)
         end
     
         def add_test_pending_summary (example, message)
-          summary = @doc.find("//div[@class='summary-errors']")[0] 
-          summary << header = XML::Node.new('div')
-          header['class'] = 'error-pending-header'
-          header << @record + ': ' + example.description
-          summary << detail = XML::Node.new('div')
-          detail['class'] = 'error-pending-detail'
-          detail << pre = XML::Node.new('pre')
-          pre << message
+          # summary = @doc.find("//div[@class='summary-errors']")[0] 
+          # summary << header = XML::Node.new('div')
+          # header['class'] = 'error-pending-header'
+          # header << @record + ': ' + example.description
+          # summary << detail = XML::Node.new('div')
+          # detail['class'] = 'error-pending-detail'
+          # detail << pre = XML::Node.new('pre')
+          # pre << message
         end
 
         def add_test_failure_summary (example, failure)
-          summary = @doc.find("//div[@class='summary-errors']")[0] 
-          summary << header = XML::Node.new('div')
-          header['class'] = 'error-' + failure_type(failure) + '-header'
-          header << @record + ': ' + example.description
-          summary << detail = XML::Node.new('div')
-          detail['class'] = 'error-' + failure_type(failure) + '-detail'
-          detail << pre = XML::Node.new('pre')
-          pre << failure_message(failure)
-          if failure.exception.backtrace
-            summary << exception = XML::Node.new('div')
-            exception['class'] = 'error-failed-exception'
-            exception << code_snippet(failure) 
-          end  
+          # summary = @doc.find("//div[@class='summary-errors']")[0] 
+          # summary << header = XML::Node.new('div')
+          # header['class'] = 'error-' + failure_type(failure) + '-header'
+          # header << @record + ': ' + example.description
+          # summary << detail = XML::Node.new('div')
+          # detail['class'] = 'error-' + failure_type(failure) + '-detail'
+          # detail << pre = XML::Node.new('pre')
+          # pre << failure_message(failure)
+          # if failure.exception.backtrace
+          #   summary << exception = XML::Node.new('div')
+          #   exception['class'] = 'error-failed-exception'
+          #   exception << code_snippet(failure) 
+          # end  
         end
         
         def code_snippet(failure)
@@ -133,40 +164,6 @@ module Spec
           failure.exception.backtrace ? 'exception' : 'failed'
         end
 
-        def html_header
-          header = <<-EOS
-                  <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-                  <html lang="en">
-                  <head>
-                  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
-                  <title>Rasta Test Results</title>
-                  EOS
-          header += html_style + html_javascript      
-          header += <<-EOS
-                    </head>
-                    <body>
-                    <div class="tabber">
-                    EOS
-          header
-        end
-
-        # show the spreadsheet in it's entirety
-        def html_tabs
-          tabs = ''
-          current_sheet = @oo.default_sheet
-          tabs += html_summary_tab
-          tabs += html_errors_tab
-          @oo.sheets.each do |sheet|
-            @oo.default_sheet = sheet
-            tabs += "  <div class=\"tabbertab\">\n"
-            tabs += "    <h2>#{sheet}</h2>\n"
-            tabs += "    #{html_spreadsheet}\n\n"
-            tabs += "  </div>\n"
-          end
-          @oo.default_sheet = current_sheet
-          tabs
-        end
-       
         def html_summary_tab
           @oo.info =~ /File: (\S+)/
           spreadsheet_name = $1 || 'Google Spreadsheet'
@@ -199,70 +196,71 @@ module Spec
             EOS
         end
         
-        def html_style
-#          rasta_css = File.new(File.join(Resource_dir,'rasta.css'))
-#          css = "<style TYPE=\"text/css\" MEDIA=\"screen\">\n"
-#          css += rasta_css.read
-#          css += "</style>\n"
-          "<LINK href=\"file://#{File.join(Resource_dir,'rasta.css')}\" rel=\"stylesheet\" type=\"text/css\">"
-        end
-
-        def html_javascript
-          #tabber = File.new(File.join(Resource_dir,'tabber-minimized.js'))
-          #javascript = "<script TYPE=\"text/javascript\">\n"
-          #javascript += tabber.read
-          #javascript += "</script>\n"
-          "<script src=\"file://#{File.join(Resource_dir,'tabber-minimized.js')}\"> </script>"
-        end
-
-        def html_footer
-          <<-EOS
-            </div>
-            </body>
-          </html>
-          EOS
+        def xml_header
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet/>"
         end
         
-        def html_spreadsheet
-          o=""
-          sheet = @oo.default_sheet
-          linenumber = @oo.first_row(sheet) 
-          o << "<table id=\"#{sheet}\" summary=\"Test results for tab #{sheet}\" border=\"0\" cellspacing=\"1\" cellpadding=\"5\">"
-          o << "<tr class=\"column-index\" align=\"center\">"
-          o << "<td>&nbsp;</td>"
-          records = @oo.records(sheet)
-          @oo.first_column(sheet).upto(@oo.last_column(sheet)) {|col| 
-            o << "<td class=\"column-index\">#{GenericSpreadsheet.number_to_letter(col)}</td>"
-          } 
-          o << "</tr>"
-          @oo.first_row.upto(@oo.last_row) do |row|
-            o << "<tr>"
-            o << "<td class=\"row-index\">#{linenumber.to_s}</td>"
-            linenumber += 1
-            @oo.first_column(sheet).upto(@oo.last_column(sheet)) do |col|
-              if (records.type == :column && col == records.header_index) || records.type == :row && row == records.header_index
-                td_class = 'header'
-              else
-                td_class = 'not_run'
-              end
-              cell = @oo.cell(row,col).to_s
-              cell =~ /\A\S+\Z/ ? align = 'align=center' : align = ''
-              o << "<td id=\"#{sheet}-#{GenericSpreadsheet.number_to_letter(col)}#{row}\" class=\"#{td_class}\">"
-              if cell.empty?
-                o << "&nbsp;"
-              else
-                o << "#{CGI::escapeHTML(@oo.cell(row,col).to_s)}"
-              end
-              o << "</td>"
-            end
-            o << "</tr>"
+#        xsl_filename = File.join(Resource_dir,'spreadsheet.xsl')
+#        <?xml-stylesheet type="text/xsl" href="spreadsheet.xsl"?>
+        
+        def add_xml_worksheets
+          current_sheet = @oo.default_sheet
+          @oo.sheets.each do |sheet|
+            @oo.default_sheet = sheet
+            add_xml_worksheet
           end
-          o << "</table>"
-        
-          return o
+          @oo.default_sheet = current_sheet
         end
-    
+        
+        def add_xml_worksheet
+          sheet_name = @oo.default_sheet
+          linenumber = @oo.first_row(sheet_name) 
+          spreadsheet = @doc.find('/spreadsheet')[0]
+          spreadsheet << sheet = XML::Node.new('sheet')
+          sheet['id'] = sheet_name
+          add_sheet_column_header(sheet)
+          @oo.first_row.upto(@oo.last_row) do |row_name|
+            sheet << row = XML::Node.new('row')
+            row << cell = XML::Node.new('cell')
+            cell['class'] = 'row-index'
+            cell << linenumber.to_s
+            linenumber += 1
+            add_row_cell_values(row, row_name)
+          end
+        end
 
+        def add_row_cell_values(row, row_name)
+          sheet_name = @oo.default_sheet
+          records = @oo.records(sheet_name)
+          @oo.first_column(sheet_name).upto(@oo.last_column(sheet_name)) do |col_name|
+            row << cell = XML::Node.new('cell')
+            if (records.type == :column && col_name == records.header_index) || records.type == :row && row_name == records.header_index
+              cell['class'] = 'header'
+            else
+              cell['id'] = "#{GenericSpreadsheet.number_to_letter(col_name)}#{row_name}"
+              cell['status'] = 'not_run' 
+            end
+            value = @oo.cell(row_name,col_name).to_s
+            puts value
+            if value == ''
+              cell << ' '
+            else
+              cell << value
+            end
+          end
+        end
+                
+        def add_sheet_column_header(sheet)
+          sheet_name = @oo.default_sheet
+          sheet << row = XML::Node.new('row')
+          row << XML::Node.new('cell')
+          (@oo.first_column(sheet_name)..@oo.last_column(sheet_name)).each do |col|
+            row << cell = XML::Node.new('cell')
+            cell['class'] = 'column-index'
+            cell << GenericSpreadsheet.number_to_letter(col)
+          end
+        end
+        
       end        
     end
   end

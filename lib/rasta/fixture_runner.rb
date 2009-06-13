@@ -61,7 +61,7 @@ module Rasta
       Spec::Runner.options.backtrace_tweaker = Spec::Runner::NoisyBacktraceTweaker.new
       Spec::Runner.options.parse_format("Formatter::ProgressBarFormatter")  
       Spec::Runner.options.parse_format("Formatter::BaseTextFormatter:#{@options[:results_path]}/results.txt")
-      Spec::Runner.options.parse_format("Formatter::SpreadsheetFormatter:#{@options[:results_path]}/spreadsheet.html")
+      Spec::Runner.options.parse_format("Formatter::SpreadsheetFormatter:#{@options[:results_path]}/spreadsheet.xml")
       Spec::Runner.options.reporter.initialize_spreadsheet
     end
     private :start_rspec
