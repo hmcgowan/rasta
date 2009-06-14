@@ -28,6 +28,7 @@ class Google < GenericSpreadsheet
 end
 
 class GenericSpreadsheet
+  attr_reader :filename
   def records(sheet = nil)
     Roo::Spreadsheet::Records.new(self, sheet)
   end

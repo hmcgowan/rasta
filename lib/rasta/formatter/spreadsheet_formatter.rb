@@ -4,7 +4,7 @@
 # handle xslt paths
 # put tabber back into xsl
 # make write use libxml-ruby and not print to file
-#
+# need to parse for spreadsheet name if Google
 
 Resource_dir = File.join(File.dirname(__FILE__), '..', 'resources')
 require 'spec/runner/formatter/base_formatter'
@@ -56,26 +56,7 @@ module Spec
           @doc.save(filename, :indent => true, :encoding => XML::Encoding::UTF_8)
         end
         
-        def update_totals(name, value)
-          # @total_count += 1
-          # @doc.find("//td[@class='total-count']")[0].content = @total_count.to_s
-          # @doc.find("//td[@class='#{name}']")[0].content = value.to_s
-        end  
-          
-        def update_passed_counts
-          update_totals('total-passed', @total_passed += 1)
-        end
-
-        def update_failed_counts
-          update_totals('total-failed', @total_failed += 1)
-        end
-        
-        def update_pending_counts
-          update_totals('total-pending', @total_pending += 1)
-        end
-
         def example_passed(example)
-           update_passed_counts
            cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
            cell['class'] = 'result'
            cell['status'] = 'passed'
@@ -83,7 +64,6 @@ module Spec
         end
 
         def example_failed(example, counter, failure)
-           update_failed_counts
            xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
            xml_cell['class'] = 'result'
            xml_cell['status'] = failure_type(failure)
@@ -94,7 +74,6 @@ module Spec
         end
         
         def example_pending(example, message)
-           update_pending_counts
            xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
            xml_cell['class'] = 'result'
            xml_cell['status'] = 'pending'
@@ -105,8 +84,20 @@ module Spec
 
         # Stub out these methods because we don't need them
         def dump_failure(*args); end
-        def dump_summary(*args); end
         def dump_pending(*args); end
+        
+        def dump_summary(duration, example_count, failure_count, pending_count)
+          xml_totals = @doc.find("/spreadsheet/summary/totals")[0]
+          xml_totals << xml_test_count = XML::Node.new('tests')
+          xml_test_count << example_count
+          xml_totals << xml_failure_count = XML::Node.new('failures')
+          xml_failure_count << failure_count
+          xml_totals << xml_pending_count = XML::Node.new('pending')
+          xml_pending_count << pending_count
+          xml_totals << xml_duration = XML::Node.new('duration')
+          xml_duration << duration
+          save_xml
+        end
     
         def add_test_detail(cell, text)
           cell << detail = XML::Node.new('detail')
@@ -161,29 +152,8 @@ module Spec
           failure.exception.backtrace ? 'exception' : 'failed'
         end
 
-        def html_summary_tab
-          @oo.info =~ /File: (\S+)/
-          spreadsheet_name = $1 || 'Google Spreadsheet'
-          summary = <<-EOS
-                      <div class="tabbertab">
-                        <div class="summary-counts">
-                          <h2>Summary</h2>
-                          <table class="summary" summary ="Summary of test results">
-                          <tr><td class="summary-title">Filename</td><td class="summary-detail-text">#{spreadsheet_name}</td></tr>
-                          <tr><td class="summary-title">Tests Run</td><td class="total-count">0</td></tr>
-                          <tr><td class="summary-title">Passed</td><td class="total-passed">0</td></tr>
-                          <tr><td class="summary-title">Failed</td><td class="total-failed">0</td></tr>
-                          <tr><td class="summary-title">Pending</td><td class="total-pending">0</td></tr>
-                          <tr><td class="summary-title">Execution Time</td><td class="total-time">0</td></tr>
-                          </table>
-                        </div>
-                        <br><br>
-                      </div>
-                    EOS
-        end
-
         def xml_header
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet><info></info><summary></summary></spreadsheet>"
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet><summary filename=\"#{File.basename(@oo.filename)}\"><totals></totals></summary></spreadsheet>"
         end
 
         def add_xml_worksheets

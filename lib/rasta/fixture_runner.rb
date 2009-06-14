@@ -92,7 +92,7 @@ module Rasta
 
     def stop_rspec
       Spec::Runner.options.reporter.original_dump if Spec::Runner.options
-      Spec::Runner.options.clear_format_options;
+      Spec::Runner.options.clear_format_options
     end
     private :stop_rspec
   end

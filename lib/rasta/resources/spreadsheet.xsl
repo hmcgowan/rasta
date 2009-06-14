@@ -42,6 +42,7 @@
   <xsl:template match="summary">
     <div class="tabbertab">
 	  <h2>Summary</h2>
+  	  <xsl:apply-templates select="totals"/>
 	  <xsl:for-each select="item">
 		<div>
 		  <xsl:attribute name="class"><xsl:value-of select="@class"/>-title</xsl:attribute>
@@ -64,6 +65,27 @@
 		</xsl:if>
       </xsl:for-each>
     </div>	
+  </xsl:template>
+
+  <xsl:template match="totals">
+	<div>
+	  <xsl:choose>
+	  <xsl:when test="failures = 0">
+		<xsl:attribute name="class">totals-passed</xsl:attribute>
+	    <xsl:value-of select="tests"/> tests passed 
+      </xsl:when>
+	  <xsl:otherwise>
+	  <xsl:attribute name="class">totals-failed</xsl:attribute>
+	    <xsl:value-of select="tests"/> tests run with
+		<xsl:value-of select="failures"/> failures
+	  </xsl:otherwise>
+	  </xsl:choose>
+	  <xsl:if test="pending">
+		<xsl:choose><xsl:when test="failures = 0">with </xsl:when><xsl:otherwise>and </xsl:otherwise></xsl:choose>
+  	    <xsl:value-of select="pending"/> pending
+	  </xsl:if>
+	  <div class="totals-duration">Duration: <xsl:value-of select="duration"/> (s)</div>
+	</div>
   </xsl:template>
 
   <xsl:template match="/">
