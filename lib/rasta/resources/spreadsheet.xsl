@@ -13,8 +13,8 @@
 	            <!-- add class information for css -->	
   		        <xsl:attribute name="class">
 				  <xsl:choose>
-				  <xsl:when test="@status"> <xsl:value-of select="@status"/> </xsl:when>
-				  <xsl:otherwise> <xsl:value-of select="@class"/> </xsl:otherwise>
+				  <xsl:when test="@status"><xsl:value-of select="@status"/></xsl:when>
+				  <xsl:otherwise><xsl:value-of select="@class"/></xsl:otherwise>
 				  </xsl:choose>
 			    </xsl:attribute>
 
@@ -44,23 +44,22 @@
 	  <h2>Summary</h2>
 	  <xsl:for-each select="item">
 		<div>
-		  <xsl:attribute name="class">
-		    <xsl:value-of select="@class"/>-title
-	      </xsl:attribute>
+		  <xsl:attribute name="class"><xsl:value-of select="@class"/>-title</xsl:attribute>
 	      <xsl:value-of select="title"/>
 		</div>
 		<div>
-		  <xsl:attribute name="class">
-		    <xsl:value-of select="@class"/>-description
-	      </xsl:attribute>
-	      <xsl:value-of select="description"/>
+		  <xsl:attribute name="class"><xsl:value-of select="@class"/>-description</xsl:attribute>
+	      <pre><xsl:value-of select="description"/></pre>
 		</div>
 	    <xsl:if test="exception">
 		  <div>
-			<xsl:attribute name="class">
-		      <xsl:value-of select="@class"/>-code
-		    </xsl:attribute>
-		    <xsl:value-of select="exception"/>
+			<xsl:attribute name="class"><xsl:value-of select="@class"/>-code</xsl:attribute>
+			<xsl:for-each select="exception/line">
+			  <div>
+				<xsl:attribute name="class"><xsl:value-of select="@class"/></xsl:attribute>
+  		          <xsl:value-of select="."/>
+              </div>
+	        </xsl:for-each>  
 		  </div>
 		</xsl:if>
       </xsl:for-each>

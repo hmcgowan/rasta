@@ -20,7 +20,7 @@ div.error-sheet-header
 }
 
 
-div.error-failed-header
+div.failed-title
 {
  padding: 3px;
  margin: 0 0 0 5px;
@@ -28,7 +28,7 @@ div.error-failed-header
  color: #FFFFFF; background: #C40D0D;
 }
 
-div.error-failed-detail
+div.failed-description
 {
  margin: 5px 0 5px 10px;
  padding: 3px 3px 3px 18px;
@@ -37,7 +37,7 @@ div.error-failed-detail
  color: #C20000; background: #FFFBD3;
 }
 
-div.error-exception-header
+div.exception-title
 {
  padding: 3px;
  margin: 0 0 0 5px;
@@ -45,7 +45,7 @@ div.error-exception-header
  color: #000000; background: #FAF834;
 }
 
-div.error-exception-detail
+div.exception-description
 {
  margin: 5px 0 5px 10px;
  padding: 3px 3px 3px 18px;
@@ -54,7 +54,7 @@ div.error-exception-detail
  background: #FCFB98; color: #131313;
 }
 
-div.error-pending-header
+div.pending-title
 {
  margin: 0 0 0 5px;
  padding: 3px;
@@ -62,7 +62,7 @@ div.error-pending-header
  color: #FFFFFF; background: #000099;
 }
 
-div.error-pending-detail
+div.pending-description
 {
  margin: 5px 0 5px 10px;
  padding: 3px 3px 3px 18px;
@@ -71,7 +71,7 @@ div.error-pending-detail
  color: #000099; background: #CCCCFF;
 }
 
-.ruby {
+div.exception-code {
  margin: 5px 0 5px 10px;
  padding: 3px 3px 3px 18px;
  font-size: 12px;
@@ -81,7 +81,7 @@ div.error-pending-detail
  padding: 0.1em 0 0.2em 0;
 }
 
-.ruby .offending {
+div.exception-code .offending {
  width: 100%;
  color: #000000;
  background-color: #CCCCCC;

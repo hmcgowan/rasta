@@ -84,20 +84,22 @@ module Spec
 
         def example_failed(example, counter, failure)
            update_failed_counts
-           cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
-           cell['class'] = 'result'
-           cell['status'] = failure_type(failure)
-           add_test_detail(cell, failure_message(failure))
-           add_test_failure_summary(example, failure)
+           xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           xml_cell['class'] = 'result'
+           xml_cell['status'] = failure_type(failure)
+           add_test_detail(xml_cell, failure_message(failure))
+           title = @record + ': ' + example.description
+           add_test_failure_summary(title, failure)
            save_xml
         end
         
         def example_pending(example, message)
            update_pending_counts
-           cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
-           cell['class'] = 'result'
-           cell['status'] = 'pending'
-           add_test_pending_summary(example, message)
+           xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           xml_cell['class'] = 'result'
+           xml_cell['status'] = 'pending'
+           title = @record + ': ' + example.description
+           add_test_pending_summary(title, message)
            save_xml
         end
 
@@ -111,58 +113,33 @@ module Spec
           detail << text
         end
           
-        def add_test_pending_summary (example, message)
-          summary = @doc.find("/spreadsheet/summary")[0]
-          summary <<  item = XML::Node.new('item')
-          item['class'] = 'pending'
-          item << title = XML::Node.new('title')
-          title << @record + ': ' + example.description
-          item << description = XML::Node.new('description')
-          description << message
-          
-          # summary << header = XML::Node.new('div')
-          # header['class'] = 'error-pending-header'
-          # header << @record + ': ' + example.description
-          # summary << detail = XML::Node.new('div')
-          # detail['class'] = 'error-pending-detail'
-          # detail << pre = XML::Node.new('pre')
-          # pre << message
+        def add_test_pending_summary (title, message)
+          xml_summary = @doc.find("/spreadsheet/summary")[0]
+          xml_summary <<  xml_item = XML::Node.new('item')
+          xml_item['class'] = 'pending'
+          xml_item << xml_title = XML::Node.new('title')
+          xml_title << title
+          xml_item << xml_description = XML::Node.new('description')
+          xml_description << message
         end
 
-        def add_test_failure_summary (example, failure)
+        def add_test_failure_summary (title, failure)
           xml_summary = @doc.find("/spreadsheet/summary")[0]
           xml_summary <<  xml_item = XML::Node.new('item')
           xml_item['class'] = failure_type(failure)
           xml_item << xml_title = XML::Node.new('title')
-          xml_title << @record + ': ' + example.description
-          xml_item << description = XML::Node.new('description')
-          description << failure_message(failure)
+          xml_title << title
+          xml_item << xml_description = XML::Node.new('description')
+          xml_description << failure_message(failure)
           if failure.exception.backtrace
             xml_item << xml_exception = XML::Node.new('exception')
             add_code_snippet(xml_exception, failure) 
           end
-          # summary = @doc.find("//div[@class='summary-errors']")[0] 
-          # summary << header = XML::Node.new('div')
-          # header['class'] = 'error-' + failure_type(failure) + '-header'
-          # header << @record + ': ' + example.description
-          # summary << detail = XML::Node.new('div')
-          # detail['class'] = 'error-' + failure_type(failure) + '-detail'
-          # detail << pre = XML::Node.new('pre')
-          # pre << failure_message(failure)
-          # if failure.exception.backtrace
-          #   summary << exception = XML::Node.new('div')
-          #   exception['class'] = 'error-failed-exception'
-          #   exception << code_snippet(failure) 
-          # end  
         end
         
         def add_code_snippet(xml_exception, failure)
           require 'spec/runner/formatter/snippet_extractor'
           @snippet_extractor ||= SnippetExtractor.new
-
-#          pre = XML::Node.new('pre') 
-#          pre['class'] = 'ruby'
-#          pre << code = XML::Node.new('code') 
           (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0])
           raw_code.split("\n").each_with_index do |line, l|
             line = "#{l + linenum - 2}: " + line
@@ -172,7 +149,7 @@ module Spec
             else
               xml_line['class'] = 'linenum'
             end
-            xml_line << line
+            xml_line << line.strip
           end
         end
         
@@ -205,24 +182,10 @@ module Spec
                     EOS
         end
 
-        def html_errors_tab
-          <<-EOS
-              <div class="tabbertab">
-                <div class="errors">
-                  <h2>Errors</h2>
-                  <div class="summary-errors"/>
-                </div>
-              </div>
-            EOS
-        end
-        
         def xml_header
           "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet><info></info><summary></summary></spreadsheet>"
         end
-        
-#        xsl_filename = File.join(Resource_dir,'spreadsheet.xsl')
-#        <?xml-stylesheet type="text/xsl" href="spreadsheet.xsl"?>
-        
+
         def add_xml_worksheets
           current_sheet = @oo.default_sheet
           @oo.sheets.each do |sheet|
@@ -238,7 +201,7 @@ module Spec
           spreadsheet = @doc.find('/spreadsheet')[0]
           spreadsheet << sheet = XML::Node.new('sheet')
           sheet['id'] = sheet_name
-          add_sheet_column_header(sheet)
+          add_xml_worksheet_column_header(sheet)
           @oo.first_row.upto(@oo.last_row) do |row_name|
             sheet << row = XML::Node.new('row')
             row << cell = XML::Node.new('cell')
@@ -246,11 +209,11 @@ module Spec
             cell << value = XML::Node.new('value')
             value << linenumber.to_s
             linenumber += 1
-            add_row_cell_values(row, row_name)
+            add_xml_worksheet_cell_values(row, row_name)
           end
         end
 
-        def add_row_cell_values(row, row_name)
+        def add_xml_worksheet_cell_values(row, row_name)
           sheet_name = @oo.default_sheet
           records = @oo.records(sheet_name)
           @oo.first_column(sheet_name).upto(@oo.last_column(sheet_name)) do |col_name|
@@ -267,7 +230,7 @@ module Spec
           end
         end
                 
-        def add_sheet_column_header(sheet)
+        def add_xml_worksheet_column_header(sheet)
           sheet_name = @oo.default_sheet
           sheet << row = XML::Node.new('row')
           row << XML::Node.new('cell')
