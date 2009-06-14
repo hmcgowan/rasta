@@ -9,21 +9,61 @@
 	      <tr>
 	        <xsl:for-each select="cell">
               <td>
+
+	            <!-- add class information for css -->	
   		        <xsl:attribute name="class">
 				  <xsl:choose>
 				  <xsl:when test="@status"> <xsl:value-of select="@status"/> </xsl:when>
 				  <xsl:otherwise> <xsl:value-of select="@class"/> </xsl:otherwise>
 				  </xsl:choose>
 			    </xsl:attribute>
+
+	            <!-- center elements that are single words -->	
 			    <xsl:if test="contains(.,' ') = false">
 	  		        <xsl:attribute name="align">center</xsl:attribute>
                 </xsl:if>
-				<xsl:value-of select="."/>
+
+	            <!-- cell value -->	
+				<xsl:value-of select="value"/>
+
+	            <!-- add tool-tip for failures -->	
+	            <xsl:for-each select="detail">
+		          <span><pre> <xsl:value-of select="."/> </pre></span>
+	            </xsl:for-each>
+
 	          </td>
 	        </xsl:for-each> 
 		  </tr>
 	    </xsl:for-each>
 	  </table>
+    </div>	
+  </xsl:template>
+
+  <xsl:template match="summary">
+    <div class="tabbertab">
+	  <h2>Summary</h2>
+	  <xsl:for-each select="item">
+		<div>
+		  <xsl:attribute name="class">
+		    <xsl:value-of select="@class"/>-title
+	      </xsl:attribute>
+	      <xsl:value-of select="title"/>
+		</div>
+		<div>
+		  <xsl:attribute name="class">
+		    <xsl:value-of select="@class"/>-description
+	      </xsl:attribute>
+	      <xsl:value-of select="description"/>
+		</div>
+	    <xsl:if test="exception">
+		  <div>
+			<xsl:attribute name="class">
+		      <xsl:value-of select="@class"/>-code
+		    </xsl:attribute>
+		    <xsl:value-of select="exception"/>
+		  </div>
+		</xsl:if>
+      </xsl:for-each>
     </div>	
   </xsl:template>
 
