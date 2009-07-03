@@ -5,21 +5,31 @@ module Rasta
   module Fixture
     module RastaFixture 
       include Rasta::Fixture::BaseFixture
-      attr_accessor :pending, :description, :comment
+      attr_accessor :pending, :description, :comment, :rasta_options
       
       def generate_rspec_tests
         @metrics.reset_page_counts
+        @bookmark = Rasta::Bookmark.new
+        @bookmark.page_count += 1
+        
         @test_fixture = self        
         initial_failure_count = current_failure_count
         try(:before_all)
         
+        return unless @bookmark.found_page?(@oo.default_sheet)
+        index = 0
         @oo.records.each do |record|
+          
           @metrics.reset_record_counts
           @current_record = record
           @metrics.inc(:record_count)
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
           try(:before_each)
           record.each do |cell|
+                    next if !@bookmark.found_record?(index+=1)
+                    @bookmark.record_count += 1
+                    return if @bookmark.exceeded_max_records?
+            
             set_formatter_record(cell)
             call_test_fixture(cell.header, cell.value)
           end 

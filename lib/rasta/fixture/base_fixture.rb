@@ -1,3 +1,4 @@
+require 'rasta/fixture/bookmark'
 module Rasta
   module Fixture
     module BaseFixture

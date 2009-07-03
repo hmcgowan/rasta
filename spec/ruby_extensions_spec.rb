@@ -1,6 +1,4 @@
-Spec_dir = File.join(File.dirname(__FILE__))
-require File.join(Spec_dir, 'spec_helper')
-
+require File.join(File.dirname(__FILE__), 'spec_helper')
 require 'rasta/extensions/ruby_extensions'
 
 describe 'Convert strings to dataypes' do

@@ -19,13 +19,24 @@ div.error-sheet-header
  color: #FFFFFF; background: #C40D0D;
 }
 
+div.summary-filename
+{
+ margin: 0 0 2px 0px;
+ padding: 10px 10px 10px 10px;
+ font-family: "Lucida Grande", Helvetica, sans-serif;
+ font-size: 20px;
+ text-align: left;
+ float: left;
+ color: #FFFFFF;
+}
+
 div.totals-passed
 {
  margin: 0 0 2px 0px;
  padding: 3px 3px 3px 18px;
  font-family: "Lucida Grande", Helvetica, sans-serif;
  text-align: right;
- color: #FFFFFF; background: #3D7700;
+ color: #FFFFFF; background: #006633;
 }
 
 div.totals-failed
@@ -41,7 +52,7 @@ div.totals-duration
 {
  font-family: "Lucida Grande", Helvetica, sans-serif;
  text-align: right;
- color: #FFFFFF
+ color: #0000000
 }
 
 div.failed-title
@@ -78,21 +89,32 @@ div.exception-description
  background: #FCFB98; color: #131313;
 }
 
+div.passed-title
+{
+ margin: 5px 0 5px 10px;
+ padding: 3px 3px 3px 18px;
+ border-left: 5px solid #3D7700;
+ border-bottom: 1px solid #3D7700;
+ background: #DBFFB4; color: #3D7700;
+
+}
+
+
 div.pending-title
 {
  margin: 0 0 0 5px;
  padding: 3px;
  font-weight: bold;
- color: #FFFFFF; background: #000099;
+ color: #CCCCCC; background: #555555;
 }
 
 div.pending-description
 {
  margin: 5px 0 5px 10px;
  padding: 3px 3px 3px 18px;
- border-left: 5px solid #000099;
- border-bottom: 1px solid #000099;
- color: #000099; background: #CCCCFF;
+ border-left: 5px solid #555555;
+ border-bottom: 1px solid #555555;
+ color: #555555; background: #CCCCCC;
 }
 
 div.exception-code {
@@ -127,11 +149,11 @@ td.column-index
 
 td.passed
 {
- background-color: #66FF99
+ background-color: #AAFFA4
 }
 td.failed
 {
- background-color: #FFBB99
+color: #FFFFFF; background: #C20000;
 }
 td.pending
 {
@@ -155,9 +177,11 @@ font-variant: small-caps;
 }
 td:hover {
   text-decoration:none;
+  color: #000000
 }
 td span {
   display:none; 
+  text-align: left;
   padding:2px 3px; 
   margin-left:8px; 
 }

@@ -2,14 +2,16 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
 
   <xsl:template match="sheet">
-    <div class="tabbertab">
+    <div>
+      <xsl:attribute name="class">tabbertab</xsl:attribute>
+      <xsl:attribute name="id"><xsl:value-of select="@id"/></xsl:attribute>
 	  <h2><xsl:value-of select="@id"/></h2>
 	  <table border="0" cellspacing="1" cellpadding="5">
 	    <xsl:for-each select="row">
 	      <tr>
 	        <xsl:for-each select="cell">
               <td>
-
+	
 	            <!-- add class information for css -->	
   		        <xsl:attribute name="class">
 				  <xsl:choose>
@@ -19,7 +21,7 @@
 			    </xsl:attribute>
 
 	            <!-- center elements that are single words -->	
-			    <xsl:if test="contains(.,' ') = false">
+			    <xsl:if test="contains(value,' ') = false">
 	  		        <xsl:attribute name="align">center</xsl:attribute>
                 </xsl:if>
 
@@ -42,16 +44,19 @@
   <xsl:template match="summary">
     <div class="tabbertab">
 	  <h2>Summary</h2>
+	  <div class='summary-filename'><xsl:value-of select="@filename"/></div>
   	  <xsl:apply-templates select="totals"/>
 	  <xsl:for-each select="item">
 		<div>
 		  <xsl:attribute name="class"><xsl:value-of select="@class"/>-title</xsl:attribute>
 	      <xsl:value-of select="title"/>
 		</div>
-		<div>
-		  <xsl:attribute name="class"><xsl:value-of select="@class"/>-description</xsl:attribute>
-	      <pre><xsl:value-of select="description"/></pre>
-		</div>
+		<xsl:if test="@class != 'passed'">
+		  <div>
+		    <xsl:attribute name="class"><xsl:value-of select="@class"/>-description</xsl:attribute>
+	        <pre><xsl:value-of select="description"/></pre>
+		  </div>
+	    </xsl:if>
 	    <xsl:if test="exception">
 		  <div>
 			<xsl:attribute name="class"><xsl:value-of select="@class"/>-code</xsl:attribute>
@@ -76,7 +81,7 @@
       </xsl:when>
 	  <xsl:otherwise>
 	  <xsl:attribute name="class">totals-failed</xsl:attribute>
-	    <xsl:value-of select="tests"/> tests run with
+	    <xsl:value-of select="tests"/> tests completed with
 		<xsl:value-of select="failures"/> failures
 	  </xsl:otherwise>
 	  </xsl:choose>

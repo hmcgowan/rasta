@@ -53,7 +53,6 @@ module Spec
       # method to run after we're all done
       def initialize_spreadsheet
         @start_time = Time.new
-        #at_exit {original_dump}
       end
       
       # Call the formatter's method and pass in the reference
@@ -92,7 +91,7 @@ module Spec
       
       alias :old_example_finished :example_finished
       def example_finished(*args)
-        error = args[1]
+        error = *args[1]
         if error
           if ::Spec::Matchers.actual_error
             error.set_backtrace(::Spec::Matchers.actual_error.backtrace) 

@@ -1,11 +1,10 @@
-Spec_dir = File.join(File.dirname(__FILE__))
-require File.join(Spec_dir, 'spec_helper')
-
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 describe 'Roo Extensions' do
   before :all do
     class GenericSpreadsheet; end
     require 'rasta/extensions/roo_extensions'
+    class Google; def initialize; end; end # stub out Google's init so we don't have to pass in a valid ID
     @oo = Google.new
   end
   it 'should implement a font interface for Google docs' do

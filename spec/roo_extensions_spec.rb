@@ -1,17 +1,11 @@
-Spec_dir = File.join(File.dirname(__FILE__))
-require File.join(Spec_dir, 'spec_helper')
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 require 'roo'
-require 'lib/rasta/extensions/roo_extensions'
+require 'rasta/extensions/roo_extensions'
 
-testfile = File.join(Spreadsheet_dir, 'spreadsheet_parsing.xls')
-
-describe 'backlog tests' do
- it 'should handle records well when no default sheet specified'
-end
+testfile = File.join(Test::Spreadsheet_dir, 'spreadsheet_parsing.xls')
 
 describe 'rasta_spreadsheet', :shared => true do
-  include Roo::Spreadsheet
 end
 
 describe 'spreadsheet', :shared => true do
@@ -69,15 +63,15 @@ describe 'Handle Header Exceptions' do
 
   it 'should throw an error on an empty sheet when parsing headers' do
     @oo.default_sheet = 'empty_sheet'
-    lambda{ @oo.records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
+    lambda{ @oo.records.header }.should raise_error(Roo::RecordParseError)
   end
   it 'should throw an error on sheet without bold cells' do
     @oo.default_sheet = 'no_header'
-    lambda{ @oo.records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
+    lambda{ @oo.records.header }.should raise_error(Roo::RecordParseError)
   end
   it 'should throw an error on sheet without valid header cells' do
     @oo.default_sheet = 'invalid_header'
-    lambda{ @oo.records.header }.should raise_error(Roo::Spreadsheet::RecordParseError)
+    lambda{ @oo.records.header }.should raise_error(Roo::RecordParseError)
   end
 end
 
@@ -109,7 +103,7 @@ describe 'Small datasets' do
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'
-    lambda{ @oo.records[3] }.should raise_error(Roo::Spreadsheet::RecordParseError)
+    lambda{ @oo.records[3] }.should raise_error(Roo::RecordParseError)
   end
 end
 

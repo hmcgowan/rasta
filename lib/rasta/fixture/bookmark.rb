@@ -6,12 +6,12 @@ module Rasta
     attr_accessor :page_count, :max_page_count
     attr_accessor :record_count, :max_record_count, :continue
 
-    def initialize
-      @continue = false
+    def initialize(options = {})
       @page_count = 0
       @record_count = 0
-      @max_page_count = Roo::Spreadsheet::options[:pages] || 0
-      @max_record_count = Roo::Spreadsheet::options[:records] || 0
+      @max_page_count = options[:pages] || 0
+      @max_record_count = options[:records] || 0
+      @continue = options[:continue] || false
       read
     end
   
@@ -35,9 +35,8 @@ module Rasta
     end
 
     def read
-      if Roo::Spreadsheet::options[:continue]
-        @continue = true 
-        @bookmark_page, @bookmark_record = parse_bookmark(Roo::Spreadsheet::options[:continue])
+      if @continue
+        @bookmark_page, @bookmark_record = parse_bookmark(@continue)
         @found_bookmark_record = true unless @bookmark_record
       else
         @found_bookmark_page = true
@@ -46,10 +45,10 @@ module Rasta
     end
 
     def parse_bookmark(name)
+      return [nil,nil] if name.nil?
       valid_bookmark_format = /^([^\[]+)(\[(\S+)\])?/
       column_record = /\A[a-z]+\Z/i 
       row_record = /\A\d+\Z/ 
-      return [nil,nil] if name.nil?
       if name =~ valid_bookmark_format
         pagename = $1
         record = $3

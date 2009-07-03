@@ -1,12 +1,10 @@
-Spec_dir = File.join(File.dirname(__FILE__))
-require File.join(Spec_dir, 'spec_helper')
+require File.join(File.dirname(__FILE__), 'spec_helper')
 
 require 'rasta/fixture/metrics'
 
-
 describe 'Metrics' do
   before :all do
-    @metrics = Rasta::Fixture::Metrics::Counter.new
+    @metrics = Rasta::Fixture::Metrics.new
   end
   
   it 'should be able to reset page counts' do

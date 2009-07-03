@@ -7,19 +7,26 @@ require 'rasta/extensions/roo_extensions'
 require 'rasta/fixture/metrics'
 
 module Rasta
-  
   class ClassLoader
+    attr_reader :required_files
     
     def initialize(path)
-      @fixture_path = path
       @@class_constants = {}
+      @fixture_path = path
+      @required_files = []      
     end
     
     # Load the files in the fixture path and 
     # track which classes got loaded
     def load_test_fixtures
-      fixture_files = File.join(@fixture_path, "**", "*.rb")
-      Dir.glob(fixture_files).each {|f| require f }
+      if File.directory?(@fixture_path)
+        fixture_files = File.join(@fixture_path, "**", "*.rb")
+      elsif File.exists?(File.expand_path(@fixture_path))
+        fixture_files = File.expand_path(@fixture_path)
+      else
+        raise IOError, "Unable to locate test fixtures using #{@fixture_path}" 
+      end
+      Dir.glob(fixture_files).each {|f| require f; @required_files << f}
     end
 
     # Get the reference to a class based on a string. Also 
@@ -80,6 +87,7 @@ module Rasta
             base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
             classname = @loader.find_class_by_name(base_sheet_name)
             fixture = classname.new
+            fixture.rasta_options = @options
             fixture.initialize_test_fixture(roo)
           rescue ArgumentError => e
             raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
