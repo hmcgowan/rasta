@@ -19,7 +19,6 @@ module Rasta
         @found_bookmark_page = true
         @found_bookmark_record = true
       end  
-      puts options.inspect
     end
   
     def found_page?(page)
