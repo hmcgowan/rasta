@@ -9,7 +9,7 @@ module Rasta
       
       def generate_rspec_tests
         @metrics.reset_page_counts
-        @bookmark = Rasta::Bookmark.new
+        @bookmark = Rasta::Bookmark.new(@rasta_options)
         @bookmark.page_count += 1
         
         @test_fixture = self        
