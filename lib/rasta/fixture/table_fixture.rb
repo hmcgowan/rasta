@@ -6,13 +6,13 @@ module Rasta
   module Fixture
     
     module RastaTableFixture 
-      include Rasta::Fixture::BaseFixture
+      include Rasta::Fixture::AbstractFixture
       
       def rasta_table
         @sheet.to_a
       end
 
-      def generate_rspec_tests
+      def execute_worksheet
         @metrics.reset_page_counts
         initial_failure_count = current_failure_count
         try(:before_all)

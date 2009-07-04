@@ -49,10 +49,9 @@ module Spec
       @@started_formatters = false
       
       # Initialize the start time
-      # and set up the superclass' dump 
-      # method to run after we're all done
       def initialize_spreadsheet
         @start_time = Time.new
+        at_exit{ dump }
       end
       
       # Call the formatter's method and pass in the reference
@@ -96,7 +95,7 @@ module Spec
           if ::Spec::Matchers.actual_error
             error.set_backtrace(::Spec::Matchers.actual_error.backtrace) 
           else
-            error.set_backtrace(nil) 
+            error.set_backtrace([]) 
           end
         end
         old_example_finished(*args)

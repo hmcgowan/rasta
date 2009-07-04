@@ -3,8 +3,8 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 testfile = File.join(Test::Spreadsheet_dir, 'spreadsheet_parsing.xls')
 
 require 'roo'
-require 'rasta/fixture/bookmark'
 require 'rasta/extensions/roo_extensions'
+require 'rasta/fixture/bookmark'
 
 describe 'Bookmarks without commandline options' do
   before :all do

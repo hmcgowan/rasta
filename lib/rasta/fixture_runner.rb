@@ -66,7 +66,11 @@ module Rasta
       require 'spec/runner/formatter/progress_bar_formatter' 
       require 'rasta/formatter/spreadsheet_formatter'
       Spec::Runner.options.backtrace_tweaker = Spec::Runner::NoisyBacktraceTweaker.new
-      Spec::Runner.options.parse_format("Formatter::ProgressBarFormatter")  
+      if @options[:ci]
+        Spec::Runner.options.parse_format("Formatter::")  
+      else
+        Spec::Runner.options.parse_format("Formatter::ProgressBarFormatter")  
+      end
       Spec::Runner.options.parse_format("Formatter::BaseTextFormatter:#{@options[:results_path]}/results.txt")
       Spec::Runner.options.parse_format("Formatter::SpreadsheetFormatter:#{@options[:results_path]}/spreadsheet.xml")
       Spec::Runner.options.reporter.initialize_spreadsheet
@@ -92,7 +96,7 @@ module Rasta
           rescue ArgumentError => e
             raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
           end
-          fixture.generate_rspec_tests
+          fixture.execute_worksheet
         end
       end  
     end

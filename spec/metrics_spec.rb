@@ -1,5 +1,4 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
-
 require 'rasta/fixture/metrics'
 
 describe 'Metrics' do

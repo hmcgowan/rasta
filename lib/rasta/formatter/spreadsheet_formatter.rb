@@ -2,8 +2,6 @@
 # and think about how to handle multiple spreadsheets
 #
 # handle xslt paths
-# put tabber back into xsl
-# make write use libxml-ruby and not print to file
 # need to parse for spreadsheet name if Google
 
 Resource_dir = File.join(File.dirname(__FILE__), '..', 'resources')

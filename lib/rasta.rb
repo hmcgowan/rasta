@@ -27,6 +27,9 @@ module Rasta
       builder.add_choice(:version, :type=>:boolean, :default=>false) do | command_line |
         command_line.uses_option("-v", "--version", "Location of test fixtures.")
       end
+      builder.add_choice(:ci, :type=>:boolean, :default=>false) do | command_line |
+        command_line.uses_option("--ci-reporter", "Enable ci_reporter formatter")
+      end
       builder.add_choice(:help, :type=>:boolean, :default=>false) do | command_line |
         command_line.uses_option("-h", "--help", "Show detailed usage.")
       end

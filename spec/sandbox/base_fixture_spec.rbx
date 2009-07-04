@@ -8,17 +8,17 @@ require 'lib/rasta'
 require TOPDIR + '/lib/rasta/fixture/base_fixture'
 describe "Metrics" do
   it "should increment :attribute_count" do
-    m = Rasta::Fixture::BaseFixture::Metrics.new
+    m = Rasta::Fixture::AbstractFixture::Metrics.new
     m.inc(:attribute_count)
     m.attribute_count.should == 1
   end
   it "should increment :method_count" do
-    m = Rasta::Fixture::BaseFixture::Metrics.new
+    m = Rasta::Fixture::AbstractFixture::Metrics.new
     m.inc(:method_count)
     m.method_count.should == 1
   end
   it "should increment :attribute_count" do
-    m = Rasta::Fixture::BaseFixture::Metrics.new
+    m = Rasta::Fixture::AbstractFixture::Metrics.new
     m.inc(:record_count)
     m.record_count.should == 1
   end

@@ -6,7 +6,7 @@ module Rasta
   module Fixture
     
     module RastaPageFixture 
-      include Rasta::Fixture::BaseFixture
+      include Rasta::Fixture::AbstractFixture
       
       class RastaAttributes
         attr_reader :keywords
@@ -41,7 +41,7 @@ module Rasta
         @spreadsheet_attributes
       end
 
-      def generate_rspec_tests
+      def execute_worksheet
         @metrics.reset_page_counts
         initial_failure_count = current_failure_count
         try(:before_all)
