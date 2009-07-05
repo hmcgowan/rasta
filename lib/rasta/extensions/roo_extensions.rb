@@ -45,6 +45,10 @@ module Roo
       @value = value
       @header = header
     end
+    
+    def empty?
+      (value.nil? || value == '' || header.nil? || header == '') ? true : false
+    end
   end
   
   class Record
