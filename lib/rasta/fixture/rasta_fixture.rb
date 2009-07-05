@@ -70,7 +70,7 @@ module Rasta
             end
           else
             it "#{test_method_name} should match #{cell.value.to_s}" do 
-              run_rspec_test_case
+              rspec_test_case
             end
           end
           

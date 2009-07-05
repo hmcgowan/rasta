@@ -1,7 +1,7 @@
 module TestCaseHelperMethods
   @@actual_value = nil
   
-  def run_rspec_test_case
+  def rspec_test_case
     if @exception_expected
       if @exception
         lambda{ @fixture.send @header }.should raise_error(@exception, @exception_message)
