@@ -1,5 +1,5 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
-require 'rasta/runner'
+require 'rasta/fixture_runner'
 
 describe 'Class Loader' do
   it 'should load a directory of fixtures' do
@@ -16,7 +16,7 @@ end
 
 describe 'Fixture Runnner' do
   before :all do
-    @runner = Rasta::Runner.new({})
+    @runner = Rasta::FixtureRunner.new({})
   end
   
   it 'should create a results directory if one does not exist' do

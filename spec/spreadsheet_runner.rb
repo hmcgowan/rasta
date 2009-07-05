@@ -8,7 +8,7 @@ Root_dir = File.expand_path(File.join(File.dirname(__FILE__), '..'))
 testfile = File.join(Root_dir, 'examples', 'rasta_fixture.ods')
 fixture_path = File.join(Root_dir, 'examples', 'fixtures')
 
-Rasta::SpreadsheetRunner.new.execute(:spreadsheet => testfile, :fixture_path => fixture_path, :results_path => '../rasta_test_results', :records => 1)
+Rasta::SpreadsheetRunner.new.execute(:spreadsheet => testfile, :fixture_path => fixture_path, :results_path => '../rasta_test_results')
 
 
 # look at possibility of adding way to get text results from here for testing the commandline opts

@@ -5,12 +5,14 @@ module Rasta
   module Fixture
     module RastaFixture 
       include Rasta::Fixture::AbstractFixture
-      attr_accessor :pending, :description, :comment, :rasta_options
+      attr_accessor :pending, :description, :comment
       
       def execute_worksheet
-        before_each_worksheet               
+        return unless @bookmark.found_page?(@oo.default_sheet)
+        before_each_worksheet        
         @oo.records.each do |record|
           before_each_record(record)
+          return if @bookmark.exceeded_max_records?
           execute_record(record)
           after_each_record(record)
         end
@@ -20,50 +22,47 @@ module Rasta
       def execute_record(record)
         record.each do |cell|
           before_each_cell(cell)
+          next if !@bookmark.found_record?(@metrics.cell_count)
           execute_cell(cell)
           after_each_cell(cell)
         end 
       end
 
-      def before_each_worksheet
-        @metrics.reset_page_counts
-        @bookmark = Rasta::Bookmark.new(@rasta_options)
-        @bookmark.page_count += 1
-        initial_failure_count = current_failure_count
-        return unless @bookmark.found_page?(@oo.default_sheet)
-        try(:before_all)
+      def execute_cell(cell)
+        send_record_to_rspec_formatter(cell)
+        call_test_fixture(cell.header, cell.value)
       end
       
-      def after_each_worksheet
-        try(:after_all)
+
+      def before_each_worksheet
+        @metrics.reset_page_counts
+        @bookmark.page_count += 1
+        initial_failure_count = current_failure_count
+        try(:before_all)
       end
       
       def before_each_record(record)
         @metrics.reset_record_counts
         @current_record = record
         @metrics.inc(:record_count)
+        @bookmark.record_count += 1
         @test_fixture = self.dup #make a copy so attributes don't bleed between rows
         try(:before_each)
+      end
+
+      def before_each_cell(cell); 
+        @metrics.inc(:cell_count)
+      end
+      
+      def after_each_cell(cell)
       end
       
       def after_each_record(record)
         try(:after_each)
       end
 
-      def before_each_cell(cell); 
-        @metrics.inc(:cell_count)
-        next if !@bookmark.found_record?(@metrics.cell_count)
-        @bookmark.record_count += 1
-        return if @bookmark.exceeded_max_records?
-      end
-      
-      def after_each_cell(cell)
-      end
-            
-      
-      def execute_cell(cell)
-        send_record_to_rspec_formatter(cell)
-        call_test_fixture(cell.header, cell.value)
+      def after_each_worksheet
+        try(:after_all)
       end
       
       # The cell is a valid cell if 

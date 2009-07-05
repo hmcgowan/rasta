@@ -95,7 +95,7 @@ module Spec
           if ::Spec::Matchers.actual_error
             error.set_backtrace(::Spec::Matchers.actual_error.backtrace) 
           else
-            error.set_backtrace([]) 
+            error.set_backtrace(nil) 
           end
         end
         old_example_finished(*args)

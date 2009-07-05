@@ -84,6 +84,7 @@ module Rasta
 
         @loader = ClassLoader.new(@options[:fixture_path])
         @loader.load_test_fixtures
+        bookmark = Rasta::Bookmark.new(@options)
         roo.sheets.each do |sheet| 
           next if sheet =~ /^#/ #skip sheets that are only comments
           begin
@@ -91,8 +92,7 @@ module Rasta
             base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
             classname = @loader.find_class_by_name(base_sheet_name)
             fixture = classname.new
-            fixture.rasta_options = @options
-            fixture.initialize_test_fixture(roo)
+            fixture.initialize_test_fixture(roo, bookmark)
           rescue ArgumentError => e
             raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
           end
