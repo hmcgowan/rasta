@@ -6,7 +6,7 @@ module Rasta
     module RastaHashFixture < RastaFixture
       attr_accessor :rasta
       
-      def before_each_worksheet(sheet)
+      def before_each_record(sheet)
         super
         @rasta = {}
       end
