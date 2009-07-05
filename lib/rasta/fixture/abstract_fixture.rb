@@ -3,11 +3,54 @@ module Rasta
   module Fixture
     module AbstractFixture
        
-      def initialize_test_fixture(roo_reference, bookmark)
+      def initialize_fixture(roo_reference, bookmark)
         @oo = roo_reference
         @metrics = Rasta::Fixture::Metrics.new
         @bookmark = bookmark
       end
+      
+      def execute_worksheet
+        return unless @bookmark.found_page?(@oo.default_sheet)
+        @bookmark.page_count += 1
+        @metrics.reset_page_counts
+        before_each_worksheet(@oo.default_sheet)
+        @oo.records.each do |record|
+          before_each_record(record)
+          @metrics.reset_record_counts
+          @current_record = record
+          @metrics.inc(:record_count)
+          @test_fixture = self.dup #make a copy so attributes don't bleed between rows
+          @bookmark.record_count += 1
+          return if @bookmark.exceeded_max_records?
+          execute_record(record)
+          after_each_record(record)
+        end
+        after_each_worksheet(@oo.default_sheet)
+      end
+      
+      def execute_record(record)
+        record.each do |cell|
+          @metrics.inc(:cell_count)
+          before_each_cell(cell)
+          next if !@bookmark.found_record?(@metrics.cell_count)
+          execute_cell(cell)
+          after_each_cell(cell)
+        end 
+      end
+
+      def execute_cell(cell)
+        before_each_cell(cell)
+        with_each_cell(cell)
+        after_each_cell(cell)
+      end
+      
+      # actions triggered while parsing the spreadsheet
+      def before_each_worksheet(sheet); end
+      def before_each_record(record); end
+      def before_each_cell(cell); end
+      def after_each_cell(cell); end
+      def after_each_record(record); end
+      def after_each_worksheet(sheet); end
        
       # Call into rspec to run the current set of tests
       # and then remove the example from the group which
@@ -18,7 +61,7 @@ module Rasta
          Spec::Runner.options.remove_example_group(Spec::Runner.options.example_groups[0]) 
       end
       
-      def send_record_to_rspec_formatter(x)
+      def send_record_to_spreadsheet_formatter(x)
         Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x.name
       end
 
@@ -28,64 +71,28 @@ module Rasta
         Spec::Runner.options.reporter.failure_count
       end
       
-      # Iterate over spreadsheet cells, create the
-      # test fixtures and call your test. Generally
-      # you will need to iterate over the spreadsheet
-      # cells and once you have the information you need
-      # to actually run the rspec test you should 
-      # use:
-      #   select_output_cell(cell)
-      #      This tells the reporter which spreadsheet
-      #      cell should get the results
-      #   create_rspec_test(test_fixture, cell)
-      #      This is a method you create which will create
-      #      rspec testcase(s) based on the inputs
-      #   run_rspec_test
-      #      This will run the test set up by create_test
-      def execute_worksheet
+      # Call a method in the test fixture and if it 
+      # throws an exception, create an rspec test. 
+      def try(method)
+        return if !method
+        if @test_fixture.methods.include?(method.to_s)
+          begin
+            @test_fixture.send method
+          rescue SystemExit
+            exit
+          rescue => error_message
+            # If the method gets an error, re-raise the error
+            # in the context of rspec so the results pick it up
+            describe "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()" do
+              it "should not throw an exception" do
+                lambda{raise error_message}.should_not raise_error
+              end
+            end
+            run_rspec_test
+          end
+        end  
       end
       
-      # This is the guts of the rspec test you want to call
-      # so for example something like 
-      #
-      # describe 'test' do 
-      #   before(:all) do
-      #   end
-      #   it "testcase 1" do
-      #   end
-      #   it "testcase 2" do
-      #   end
-      #   ... etc ...
-      #   after(:all) do
-      #   end
-      # end
-      def create_rspec_test(args)
-      end 
-      
-      # This is called by the fixture before any test 
-      # is run on the worksheet so you can perform any 
-      # setup needed
-      #def before_all
-      #end
-      
-      # This method is called before each set of tests
-      # typically a row or column of tests or potentially
-      # before each cell, depending on the fixture 
-      #def before_each
-      #end
-      
-      # This method is called after each set of tests
-      # typically a row or column of tests or potentially
-      # after each cell, depending on the fixture 
-      #def after_each
-      #end
-      
-      # This is called by the fixture after all tests
-      # are run on the worksheet so you can perform any 
-      # teardown needed
-      #def after_all
-      #end
-
     end
   end  
 end 
