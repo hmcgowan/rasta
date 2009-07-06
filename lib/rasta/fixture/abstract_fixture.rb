@@ -18,10 +18,10 @@ module Rasta
           before_each_record(record)
           @metrics.reset_record_counts
           @current_record = record
-          @metrics.inc(:record_count)
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
           @bookmark.record_count += 1
-          return if @bookmark.exceeded_max_records?
+          break if @bookmark.exceeded_max_records?
+          @metrics.inc(:record_count)
           execute_record(record)
           after_each_record(record)
         end
@@ -30,9 +30,9 @@ module Rasta
       
       def execute_record(record)
         record.each do |cell|
-          @metrics.inc(:cell_count)
           before_each_cell(cell)
           next if !@bookmark.found_record?(@metrics.cell_count)
+          @metrics.inc(:cell_count)
           execute_cell(cell)
           after_each_cell(cell)
         end 
