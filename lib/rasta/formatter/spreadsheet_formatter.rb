@@ -126,8 +126,9 @@ module Spec
           
         def add_code_snippet(xml_exception, failure)
           require 'spec/runner/formatter/snippet_extractor'
+          return unless failure.exception.backtrace && failure.exception.backtrace != []
           @snippet_extractor ||= SnippetExtractor.new
-          (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0]) if failure.exception.backtrace
+          (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0]) 
           raw_code.split("\n").each_with_index do |line, l|
             line = "#{l + linenum - 2}: " + line
             xml_exception << xml_line = XML::Node.new('line') 
