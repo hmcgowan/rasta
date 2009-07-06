@@ -29,16 +29,14 @@ module Rasta
         if cell.header == 'pending'
           @test_fixture.pending = cell.value
         elsif self.methods.include?(cell.header + '=') 
-          @metrics.inc(:attribute_count)
           set_test_fixture_value(cell)
         else
-          @metrics.inc(:method_count)
           call_test_fixture_method(cell)
-          run_rspec_test
         end
       end
       
       def set_test_fixture_value(cell)
+        @metrics.inc(:attribute_count)
         @test_fixture.send("#{cell.header}=", cell.value)
       end
       
@@ -46,6 +44,7 @@ module Rasta
       # create an rspec test that can check the 
       # return value and handle any exceptions
       def call_test_fixture_method(cell)
+        @metrics.inc(:method_count)
         test_method_name = "#{cell.header}()"
         test_fixture = @test_fixture
         describe "#{@oo.default_sheet}[#{cell.header}]" do 
@@ -78,6 +77,7 @@ module Rasta
             @fixture = nil
           end
         end
+        run_rspec_test
       end
       
     end 
