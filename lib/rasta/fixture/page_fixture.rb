@@ -4,7 +4,7 @@ require 'rasta/fixture/rspec_helpers'
 # Store the whole worksheet page in a single hash
 module Rasta
   module Fixture
-    module RastaHashFixture
+    module RastaPageFixture
       include RastaFixture
       attr_accessor :rasta
       
