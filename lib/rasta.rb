@@ -43,7 +43,7 @@ module Rasta
       clear_commandline_arguments
       start_interrupt_handler        
       run_tests
-      exit_gracefully
+      exit_gracefully if @user_choices[:runtime_environment] == :shell
     end
 
     # We're not using the built-in postprocess_user_choices because
