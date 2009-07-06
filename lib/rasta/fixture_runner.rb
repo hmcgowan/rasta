@@ -62,17 +62,25 @@ module Rasta
       FileUtils.mkdir_p(results_dir) 
     end
     
+    #TODO: work out way to specify which formatters you want to include
     def start_rspec
       require 'spec/runner/formatter/progress_bar_formatter' 
       require 'rasta/formatter/spreadsheet_formatter'
       Spec::Runner.options.backtrace_tweaker = Spec::Runner::NoisyBacktraceTweaker.new
-      if @options[:ci]
-        Spec::Runner.options.parse_format("Formatter::")  
-      else
-        Spec::Runner.options.parse_format("Formatter::ProgressBarFormatter")  
+      @options[:formatters] ||= {
+        'ProgressBarFormatter' => nil,
+        'BaseTextFormatter' => 'results.txt',
+        'SpreadsheetFormatter' => 'spreadsheet.xml'
+      }
+      # TODO: Spec::Runner.options.parse_format("Formatter::")  if @options[:formatters].has_key?('CIREPORTER') 
+      @options[:formatters].each_key do |key|
+        if @options[:formatters][key]
+          path = ':' + File.join(@options[:results_path], @options[:formatters][key])
+        else
+          path = ''
+        end
+        Spec::Runner.options.parse_format("Formatter::#{key}#{path}")
       end
-      Spec::Runner.options.parse_format("Formatter::BaseTextFormatter:#{@options[:results_path]}/results.txt")
-      Spec::Runner.options.parse_format("Formatter::SpreadsheetFormatter:#{@options[:results_path]}/spreadsheet.xml")
       Spec::Runner.options.reporter.initialize_spreadsheet
     end
     private :start_rspec
@@ -92,6 +100,9 @@ module Rasta
             base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
             classname = @loader.find_class_by_name(base_sheet_name)
             fixture = classname.new
+            if @options[:extend_fixture]
+              fixture.extend( @options[:extend_fixture])
+            end
             fixture.initialize_fixture(roo, bookmark)
           rescue ArgumentError => e
             raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
