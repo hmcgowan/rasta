@@ -48,21 +48,17 @@ describe 'Bookmark with commandline options' do
     @bookmark = Rasta::Bookmark.new({:pages => 1})
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
-    @bookmark.exceeded_max_records?.should == false # pages = 0
-    @bookmark.page_count += 1
     @bookmark.exceeded_max_records?.should == false # pages = 1
     @bookmark.page_count += 1
-    @bookmark.exceeded_max_records?.should == true  # pages = 2
+    @bookmark.exceeded_max_records?.should == true # pages = 2
   end
   it 'should be able to continue a given number of records' do
     @bookmark = Rasta::Bookmark.new({:records => 1})
     @bookmark.found_page?('MyPage').should == true
     @bookmark.found_record?(4).should == true
-    @bookmark.exceeded_max_records?.should == false # records = 0
-    @bookmark.record_count += 1
     @bookmark.exceeded_max_records?.should == false # records = 1
     @bookmark.record_count += 1
-    @bookmark.exceeded_max_records?.should == true  # records = 2
+    @bookmark.exceeded_max_records?.should == true # records = 2
   end
 end
  

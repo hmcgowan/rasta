@@ -12,6 +12,8 @@ module Rasta
       @max_page_count = options[:pages] || 0
       @max_record_count = options[:records] || 0
       @continue = options[:continue] || false
+      @found_bookmark_page = false
+      @found_bookmark_record = false
       if @continue
         @bookmark_page, @bookmark_record = parse_bookmark(@continue)
         @found_bookmark_record = true unless @bookmark_record
@@ -22,15 +24,24 @@ module Rasta
     end
   
     def found_page?(page)
-      return true if @found_bookmark_page
-      @found_bookmark_page = true if page == @bookmark_page 
-      @found_bookmark_page || false
+      if @found_bookmark_page || page == @bookmark_page 
+        @found_bookmark_page = true
+        @page_count += 1 
+        true
+      else
+        false
+      end
     end
   
     def found_record?(record)
-      return true if @found_bookmark_record 
-      @found_bookmark_record = true if record == @bookmark_record
-      @found_bookmark_record || false
+      if @found_bookmark_record || record == @bookmark_record
+        @found_bookmark_record = true 
+        @record_count += 1 
+        true
+      else 
+        false
+      end
+     
     end
   
     def exceeded_max_records?

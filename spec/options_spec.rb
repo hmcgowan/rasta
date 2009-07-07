@@ -92,11 +92,35 @@ describe 'continue from bookmark' do
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 4
   end
+  it 'Should be able to continue from a page row with n records' do 
+    Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'MathFunctions#pending[5]', :records=>2)) 
+    @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
+    @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
+    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 2
+  end
+  it 'Should be able to continue from a page row with n pages' do 
+    Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'MathFunctions[5]', :pages=>2)) 
+    @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 4
+    @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 3
+    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
+  end
   it 'Should be able to continue from a page column' do 
     Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'StringFunctions[D]')) 
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 7 
+  end
+  it 'Should be able to continue from a page column with n records' do 
+    Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'StringFunctions[D]', :records=>3)) 
+    @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
+    @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
+    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 2 
+  end
+  it 'Should be able to continue from a page column with n pages' do 
+    Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'StringFunctions[D]', :pages=>1)) 
+    @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
+    @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
+    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
   end
   it 'Should be able to continue from a page row for n records' 
   it 'Should be able to continue from a page row for n records that spans pages' 

@@ -11,7 +11,6 @@ module Rasta
       
       def execute_worksheet
         return unless @bookmark.found_page?(@oo.default_sheet)
-        @bookmark.page_count += 1
         @metrics.reset_page_counts
         before_each_worksheet(@oo.default_sheet)
         @oo.records.each do |record|
@@ -19,9 +18,8 @@ module Rasta
           @metrics.reset_record_counts
           @current_record = record
           @test_fixture = self.dup #make a copy so attributes don't bleed between rows
-          @bookmark.record_count += 1
-          break if @bookmark.exceeded_max_records?
           next unless @bookmark.found_record?(record.name)
+          break if @bookmark.exceeded_max_records?
           @metrics.inc(:record_count)
           execute_record(record)
           after_each_record(record)
