@@ -52,7 +52,7 @@ module Roo
   end
   
   class Record
-    attr_accessor :record_cells, :header
+    attr_accessor :record_cells, :header, :name
 
     def each
       @record_cells.each { |cell| yield cell }
@@ -103,6 +103,7 @@ module Roo
       @record_list[x] = Record.new
       @record_list[x].header = @header
       @record_list[x].record_cells = record_cells(x)
+      @record_list[x].name = x
       @record_list[x]
     end
     

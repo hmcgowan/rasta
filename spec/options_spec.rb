@@ -47,7 +47,7 @@ describe 'rasta_options', :shared => true do
   end
 end
 
-describe 'bookmark' do
+describe 'continue from bookmark' do
   it_should_behave_like 'rasta_options'
 
   it 'Should count the correct number of records when parsing' do 
@@ -90,7 +90,7 @@ describe 'bookmark' do
     Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'MathFunctions#pending[5]')) 
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
-    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 4 #last row is pending
+    @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 4
   end
   it 'Should be able to continue from a page column' do 
     Rasta::SpreadsheetRunner.new.execute(@options.merge(:continue=>'StringFunctions[D]')) 
