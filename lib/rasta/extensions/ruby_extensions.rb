@@ -1,3 +1,5 @@
+class Object; def postprocess; self; end; end
+
 class String 
   ARRAY  = /\A\s*\[.+\]\s*\Z/ms
   HASH   = /\A\s*\{.+\}\s*\Z/ms
@@ -21,5 +23,7 @@ class String
     else
       self
     end
-  end   
+  end  
+  
 end
+

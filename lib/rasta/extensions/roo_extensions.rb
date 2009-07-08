@@ -37,12 +37,13 @@ end
 module Roo
   
   class RecordParseError < RuntimeError; end
+  class RecordRangeError < RangeError; end
 
   class RecordCell
     attr_accessor :name, :value, :header
     def initialize(name, value, header)
       @name = name
-      @value = value
+      @value = value.postprocess
       @header = header
     end
     
@@ -62,7 +63,11 @@ module Roo
     def [](x)
       case x
       when String
-        @record_cells[@header.index(x)]
+        begin
+          @record_cells[@header.index(x)]
+        rescue TypeError
+          raise RecordRangeError, "No header value exists for: #{x}"
+        end
       when Integer  
         @record_cells[x]
       end
@@ -121,8 +126,16 @@ module Roo
     
     def record_cells(x)
       record_values = []
-      record_values = @oo.send(@type, x)  # @oo.row(x) or @oo.column(x)
-      raise RecordParseError, "No record exists at index #{x}" if record_values.compact == [] 
+      case @type
+      when :row
+        (@oo.first_column..@oo.last_column).each do |col|
+          record_values << (@oo.font(x,col).italic? ? nil : @oo.cell(x,col))
+        end
+      when :column
+        (@oo.first_row..@oo.last_row).each do |row|
+          record_values << (@oo.font(row,x).italic? ? nil :  @oo.cell(row, x) )
+        end
+      end
       cells = []
       idx = @first_record - 1
       record_values.each do |val|

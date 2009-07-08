@@ -29,6 +29,7 @@ module Rasta
 
       #stub out rspec tests 
       def call_test_fixture_method(cell);end
+
     end 
   end  
 end 

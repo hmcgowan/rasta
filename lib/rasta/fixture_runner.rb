@@ -80,8 +80,8 @@ module Rasta
           path = ''
         end
         Spec::Runner.options.parse_format("Formatter::#{key}#{path}")
+        Spec::Runner.options.reporter.initialize_spreadsheet if key == 'SpreadsheetFormatter'
       end
-      Spec::Runner.options.reporter.initialize_spreadsheet
     end
     private :start_rspec
    

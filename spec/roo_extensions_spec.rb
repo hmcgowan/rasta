@@ -156,3 +156,61 @@ describe 'Records should accept argument for sheet name' do
   # or the nth data row, maybe the zeroth row is always the header
   # think a little more on it
 end
+
+describe 'Postprocess data types' do
+  it_should_behave_like 'spreadsheet'
+
+  add_postprocess_methods = Proc.new {
+    class String
+      # change all email addresses to a plussed address
+      def postprocess
+        if self =~ /(^[-+.\w]{1,64})@[-.\w]{1,64}\.[-.\w]{2,6}$/
+          "email_prefix+#{$1}@foo.com"
+        else
+          self  
+        end
+      end
+    end  
+    class Float
+      # convert floats to ints
+      def postprocess
+        self.to_i
+      end
+    end
+  }
+  remove_postprocess_methods = Proc.new {
+    class String; def postprocess; self; end; end
+    class Float; def postprocess; self; end; end
+  }
+
+  
+  before :all do
+    add_postprocess_methods.call
+  end
+  
+  it 'should convert email addresses but not other strings' do 
+    @oo.records('datatypes')[2]['some_values'].value.should == 'email_prefix+somebody@foo.com'
+  end
+  
+  it 'should not affect other strings' do 
+    @oo.records('datatypes')[4]['some_values'].value.should == 'This is a string'
+  end
+
+  it 'should convert floats to ints' do 
+    @oo.records('datatypes')[3]['some_values'].value.should == 1
+  end
+  
+  after :all do
+    remove_postprocess_methods.call
+  end
+end
+
+describe 'Cells that are italicized should be ignored as comments' do
+  it_should_behave_like 'spreadsheet'
+  
+  it 'should ignore cells with an italic font' do
+    @oo.records('fonts')[2]['bold'].value.should == 'first'
+    @oo.records('fonts')[3]['bold'].value.should be_nil
+    @oo.records('fonts')[4]['bold'].value.should == 'second'
+  end
+end

@@ -107,6 +107,9 @@ end
 module Spec
   module Runner
     class Options
+      def set_format_options(x)
+        @format_options = x; 
+      end
       def clear_format_options
         @formatters = []; 
         @format_options = []; 
