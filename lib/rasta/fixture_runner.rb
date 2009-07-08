@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'spec'
 require 'fileutils'
+require 'logrotate'
 require 'roo'
 require 'rasta/extensions/rspec_extensions'
 require 'rasta/extensions/roo_extensions'
@@ -51,15 +52,23 @@ module Rasta
     end
     
     def execute
-      create_results_directory(@options[:results_path])
+      prepare_results_directory
       start_rspec
       run_test_fixtures
       stop_rspec
     end
 
-    def create_results_directory(results_dir)
-      FileUtils.rm_r(results_dir) if File.directory?(results_dir) 
-      FileUtils.mkdir_p(results_dir) 
+    def prepare_results_directory
+      if File.directory?(@options[:results_path])
+        rotate_result_files
+      else
+        FileUtils.mkdir_p(@options[:results_path]) 
+      end  
+    end
+    
+    def rotate_result_files
+      LogRotate.rotate_file(File.join(@options[:results_path], 'spreadsheet.xml'), {:count=>10})
+      LogRotate.rotate_file(File.join(@options[:results_path], 'spreadsheet.html'), {:count=>10})
     end
     
     #TODO: work out way to specify which formatters you want to include
