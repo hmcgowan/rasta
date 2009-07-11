@@ -103,7 +103,7 @@ module Spec
           save_xml
         end
 
-        def add_test_summary_item (title, classname, message=nil, exception=nil)
+        def add_test_summary_item (title, classname, message=nil, failure=nil)
           xml_summary = @doc.find("/spreadsheet/summary")[0]
           xml_summary <<  xml_item = XML::Node.new('item')
           xml_item['class'] = classname
@@ -111,17 +111,17 @@ module Spec
           xml_title << title
           if message
             xml_item << xml_description = XML::Node.new('description')
-            xml_description << message
-            if exception
+            xml_description << message.strip
+            if exception?(failure)
               xml_item << xml_exception = XML::Node.new('exception')
-              add_code_snippet(xml_exception, exception) 
+              add_code_snippet(xml_exception, failure) 
             end
           end  
         end
         
         def add_test_detail(xml_cell, text)
           xml_cell << xml_detail = XML::Node.new('detail')
-          xml_detail << text
+          xml_detail << text.strip
         end
           
         def add_code_snippet(xml_exception, failure)
@@ -146,7 +146,11 @@ module Spec
         end
 
         def failure_type(failure)
-          failure.exception.backtrace ? 'exception' : 'failed'
+          exception?(failure) ? 'exception' : 'failed'
+        end
+        
+        def exception?(failure)
+          failure && failure.exception.backtrace && failure.exception.backtrace != []
         end
 
         def xml_header

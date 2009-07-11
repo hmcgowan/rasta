@@ -70,8 +70,10 @@ module Rasta
       rotate_dir = File.join(@options[:results_path], 'previous_runs')
       FileUtils.mkdir_p(rotate_dir) unless File.directory?(rotate_dir)
       options = {:count=>10, :directory=>rotate_dir}
-      LogRotate.rotate_file(File.join(@options[:results_path], 'spreadsheet.xml'), options)
-      LogRotate.rotate_file(File.join(@options[:results_path], 'spreadsheet.html'), options)
+      xml_file = File.join(@options[:results_path], 'spreadsheet.xml')
+      html_file = File.join(@options[:results_path], 'spreadsheet.html')
+      LogRotate.rotate_file(xml_file, options) if File.exists?(xml_file)
+      LogRotate.rotate_file(html_file, options) if File.exists?(html_file)
     end
     
     #TODO: work out way to specify which formatters you want to include

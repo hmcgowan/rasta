@@ -5,7 +5,7 @@
     <div>
       <xsl:attribute name="class">tabbertab</xsl:attribute>
       <xsl:attribute name="id"><xsl:value-of select="@id"/></xsl:attribute>
-	  <h2><xsl:value-of select="@id"/></h2>
+      <xsl:attribute name="title"><xsl:value-of select="@id"/></xsl:attribute>
 	  <table border="0" cellspacing="1" cellpadding="5">
 	    <xsl:for-each select="row">
 	      <tr>
@@ -42,8 +42,7 @@
   </xsl:template>
 
   <xsl:template match="summary">
-    <div class="tabbertab">
-	  <h2>Summary</h2>
+    <div class="tabbertab" title="Summary">
 	  <div class='summary-filename'><xsl:value-of select="@filename"/></div>
   	  <xsl:apply-templates select="totals"/>
 	  <xsl:for-each select="item">
@@ -75,22 +74,13 @@
   <xsl:template match="totals">
 	<div>
 	  <xsl:choose>
-	  <xsl:when test="failures = 0">
-		<xsl:attribute name="class">totals-passed</xsl:attribute>
-	    <xsl:value-of select="tests"/> tests passed 
-      </xsl:when>
+	  <xsl:when test="failures = 0"><xsl:attribute name="class">totals-passed</xsl:attribute><xsl:value-of select="tests"/> tests passed</xsl:when>
 	  <xsl:otherwise>
-	  <xsl:attribute name="class">totals-failed</xsl:attribute>
-	    <xsl:value-of select="tests"/> tests completed with
-		<xsl:value-of select="failures"/> failures
-	  </xsl:otherwise>
+	  <xsl:attribute name="class">totals-failed</xsl:attribute><xsl:value-of select="tests"/> tests completed with <xsl:value-of select="failures"/> failures </xsl:otherwise>
 	  </xsl:choose>
-	  <xsl:if test="pending">
-		<xsl:choose><xsl:when test="failures = 0">with </xsl:when><xsl:otherwise>and </xsl:otherwise></xsl:choose>
-  	    <xsl:value-of select="pending"/> pending
-	  </xsl:if>
-	  <div class="totals-duration">Duration: <xsl:value-of select="duration"/> (s)</div>
+	  <xsl:if test="pending"><xsl:choose><xsl:when test="failures = 0">with </xsl:when><xsl:otherwise>and </xsl:otherwise></xsl:choose><xsl:value-of select="pending"/> pending</xsl:if>
 	</div>
+	<div class="totals-duration">Duration: <xsl:value-of select="duration"/> (s)</div>
   </xsl:template>
 
   <xsl:template match="/">
