@@ -123,8 +123,4 @@ describe 'continue from bookmark' do
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
   end
-  it 'Should be able to continue from a page row for n records' 
-  it 'Should be able to continue from a page row for n records that spans pages' 
-  it 'Should be able to continue from a page col for n records' 
-  it 'Should be able to continue from a page col for n records that spans pages' 
 end    
