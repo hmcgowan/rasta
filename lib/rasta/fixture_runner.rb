@@ -83,7 +83,6 @@ module Rasta
       Spec::Runner.options.backtrace_tweaker = Spec::Runner::NoisyBacktraceTweaker.new
       @options[:formatters] ||= {
         'ProgressBarFormatter' => nil,
-        'BaseTextFormatter' => 'results.txt',
         'SpreadsheetFormatter' => 'spreadsheet.xml'
       }
       # TODO: Spec::Runner.options.parse_format("Formatter::")  if @options[:formatters].has_key?('CIREPORTER') 
