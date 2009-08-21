@@ -128,10 +128,12 @@ module Roo
       record_values = []
       case @type
       when :row
+        raise RecordParseError, "Record out of range. #{x} not in #{@oo.first_column}..#{@oo.last_column}" unless (@oo.first_row..@oo.last_row) === x
         (@oo.first_column..@oo.last_column).each do |col|
-          record_values << (@oo.font(x,col).italic? ? nil : @oo.cell(x,col))
+          record_values << (@oo.font(x,col).italic? ? nil : @oo.cell(x,col))  
         end
       when :column
+        raise RecordParseError, "Record out of range. #{x} not in #{@oo.first_column}..#{@oo.last_column}" unless (@oo.first_column..@oo.last_column) === x
         (@oo.first_row..@oo.last_row).each do |row|
           record_values << (@oo.font(row,x).italic? ? nil :  @oo.cell(row, x) )
         end
