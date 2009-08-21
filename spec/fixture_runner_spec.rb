@@ -16,28 +16,24 @@ end
 
 describe 'Fixture Runnner' do
   before :all do
-    @runner = Rasta::FixtureRunner.new({})
+    @results_dir = File.join(Dir.tmpdir, 'rasta_test_results')
+    @runner = Rasta::FixtureRunner.new(:results_path=>@results_dir)
   end
   
-  it 'should create a results directory if one does not exist' do
-    @results_dir = File.join(Dir.tmpdir, 'this_directory_does_not_exist')
-    @runner.create_results_directory(@results_dir)
-    File.directory?(@results_dir).should be_true
-  end
-
-  it 'should empty an existing results directory' do
-    @results_dir = File.join(Dir.tmpdir, 'this_directory_does_not_exist')
-    @file_in_results_dir = File.join(@results_dir, 'some_file')
-    FileUtils.mkdir_p(@results_dir) 
-    FileUtils.touch(@file_in_results_dir)
-    @runner.create_results_directory(@results_dir)
-    File.directory?(@results_dir).should be_true
-    File.exists?(@file_in_results_dir).should be_false
+  before :each do
+    FileUtils.rm_r(@results_dir) if File.directory?(@results_dir)
   end
   
   after :each do
     FileUtils.rm_r(@results_dir) 
   end
+
+  it 'should create a results directory if one does not exist' do
+    @runner.prepare_results_directory
+    File.directory?(@results_dir).should be_true
+    
+  end
+
 end
 
 
