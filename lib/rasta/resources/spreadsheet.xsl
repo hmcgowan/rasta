@@ -55,17 +55,17 @@
 		    <xsl:attribute name="class"><xsl:value-of select="@class"/>-description</xsl:attribute>
 	        <pre><xsl:value-of select="description"/></pre>
 		  </div>
-	    </xsl:if>
-	    <xsl:if test="exception">
-		  <div>
-			<xsl:attribute name="class"><xsl:value-of select="@class"/>-code</xsl:attribute>
-			<xsl:for-each select="exception/line">
-			  <div>
-				<xsl:attribute name="class"><xsl:value-of select="@class"/></xsl:attribute>
-  		          <xsl:value-of select="."/>
-              </div>
-	        </xsl:for-each>  
-		  </div>
+		  <xsl:if test="@class = 'exception'">
+			<div>
+			  <xsl:attribute name="class"><xsl:value-of select="@class"/>-code</xsl:attribute>
+			  <xsl:for-each select="exception/line">
+			    <div>
+			      <xsl:attribute name="class"><xsl:value-of select="@class"/></xsl:attribute>
+	  		      <xsl:value-of select="."/>
+	            </div>
+		      </xsl:for-each>  
+			</div>
+		  </xsl:if>
 		</xsl:if>
       </xsl:for-each>
     </div>	

@@ -7,24 +7,13 @@ module Rasta
       include Rasta::Fixture::AbstractFixture
       attr_accessor :pending, :description, :comment
 
-      def before_each_worksheet(sheet)
-        try(:before_all)
-      end
-      
-      def before_each_record(record)
-        try(:before_each)
-      end
-
-      def after_each_record(record)
-        try(:after_each)
-      end
-
-      def after_each_worksheet(sheet)
-        try(:after_all)
-      end
+      def before_each_worksheet(sheet); try(:before_all); end
+      def before_each_record(record); try(:before_each); end
+      def after_each_record(record); try(:after_each); end
+      def after_each_worksheet(sheet); try(:after_all); end
       
       def with_each_cell(cell)
-        send_record_to_spreadsheet_formatter(cell)
+        send_record_to_spreadsheet_formatter(cell.name)
         return if cell.empty?
         if cell.header == 'pending'
           @test_fixture.pending = cell.value

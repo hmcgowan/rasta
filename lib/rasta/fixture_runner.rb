@@ -47,7 +47,7 @@ module Rasta
 
   class FixtureRunner
         
-    def initialize(opts)
+    def initialize(opts={})
       @options = opts
     end
     
@@ -113,13 +113,13 @@ module Rasta
             base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
             classname = @loader.find_class_by_name(base_sheet_name)
             fixture = classname.new
-            if @options[:extend_fixture]
-              fixture.extend( @options[:extend_fixture])
-            end
-            fixture.initialize_fixture(roo, bookmark)
           rescue ArgumentError => e
-            raise ArgumentError, "Unable to load class #{@classname}. Make sure the class includes the Rasta fixture: #{e.inspect + e.backtrace.join("\n")}"
+            raise ArgumentError, "Unable to load class #{classname}. #{e.inspect + e.backtrace.join("\n")}"
           end
+          if @options[:extend_fixture]
+            fixture.extend( @options[:extend_fixture])
+          end
+          fixture.initialize_fixture(roo, bookmark)
           fixture.execute_worksheet
         end
       end  

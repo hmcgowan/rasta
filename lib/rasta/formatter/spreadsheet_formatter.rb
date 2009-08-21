@@ -57,7 +57,7 @@ module Spec
         end
         
         def example_passed(example)
-           xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
            xml_cell['class'] = 'result'
            xml_cell['status'] = 'passed'
            title = @record + ': ' + example.description
@@ -66,7 +66,7 @@ module Spec
         end
 
         def example_failed(example, counter, failure)
-           xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
            xml_cell['class'] = 'result'
            xml_cell['status'] = failure_type(failure)
            add_test_detail(xml_cell, failure_message(failure))
@@ -77,7 +77,7 @@ module Spec
         end
         
         def example_pending(example, message)
-           xml_cell = @doc.find("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")[0]
+           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
            xml_cell['class'] = 'result'
            xml_cell['status'] = 'pending'
            title = @record + ': ' + example.description
@@ -91,7 +91,7 @@ module Spec
         
         # Update the totals on the Summary tab
         def dump_summary(duration, example_count, failure_count, pending_count)
-          xml_totals = @doc.find("/spreadsheet/summary/totals")[0]
+          xml_totals = @doc.find_first("/spreadsheet/summary/totals")
           xml_totals << xml_duration = XML::Node.new('duration')
           xml_duration << duration
           xml_totals << xml_test_count = XML::Node.new('tests')
@@ -104,7 +104,7 @@ module Spec
         end
 
         def add_test_summary_item (title, classname, message=nil, failure=nil)
-          xml_summary = @doc.find("/spreadsheet/summary")[0]
+          xml_summary = @doc.find_first("/spreadsheet/summary")
           xml_summary <<  xml_item = XML::Node.new('item')
           xml_item['class'] = classname
           xml_item << xml_title = XML::Node.new('title')
@@ -170,7 +170,7 @@ module Spec
         def add_xml_worksheet
           sheet_name = @oo.default_sheet
           linenumber = @oo.first_row(sheet_name) 
-          xml_spreadsheet = @doc.find('/spreadsheet')[0]
+          xml_spreadsheet = @doc.find_first('/spreadsheet')
           xml_spreadsheet << xml_sheet = XML::Node.new('sheet')
           xml_sheet['id'] = sheet_name
           add_xml_worksheet_column_header(xml_sheet)

@@ -1,4 +1,5 @@
 require 'rasta/fixture/bookmark'
+
 module Rasta
   module Fixture
     module AbstractFixture
@@ -12,18 +13,22 @@ module Rasta
       def execute_worksheet
         return unless @bookmark.found_page?(@oo.default_sheet)
         @metrics.reset_page_counts
+        @test_fixture = self.dup 
+        send_record_to_spreadsheet_formatter('before_all')
         before_each_worksheet(@oo.default_sheet)
         @oo.records.each do |record|
           before_each_record(record)
           @metrics.reset_record_counts
           @current_record = record
-          @test_fixture = self.dup #make a copy so attributes don't bleed between rows
+          @test_fixture = self.dup #make a copy so the state is reset every record
           next unless @bookmark.found_record?(record.name)
           break if @bookmark.exceeded_max_records?
           @metrics.inc(:record_count)
           execute_record(record)
           after_each_record(record)
         end
+        @test_fixture = self.dup 
+        send_record_to_spreadsheet_formatter('after_all')
         after_each_worksheet(@oo.default_sheet)
       end
       
@@ -44,10 +49,14 @@ module Rasta
       
       # actions triggered while parsing the spreadsheet
       def before_each_worksheet(sheet); end
+      
       def before_each_record(record); end
+      
       def before_each_cell(cell); end
       def after_each_cell(cell); end
+
       def after_each_record(record); end
+
       def after_each_worksheet(sheet); end
        
       # Call into rspec to run the current set of tests
@@ -60,7 +69,7 @@ module Rasta
       end
       
       def send_record_to_spreadsheet_formatter(x)
-        Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x.name
+        Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x
       end
 
       # Allow access to the current failure count from RSpec
@@ -72,7 +81,6 @@ module Rasta
       # Call a method in the test fixture and if it 
       # throws an exception, create an rspec test. 
       def try(method)
-        return if !method
         if @test_fixture.methods.include?(method.to_s)
           begin
             @test_fixture.send method
@@ -81,7 +89,12 @@ module Rasta
           rescue => error_message
             # If the method gets an error, re-raise the error
             # in the context of rspec so the results pick it up
-            describe "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()" do
+            if @current_record.methods.include?('name')
+              test_description = "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()"
+            else
+              test_description = "#{@test_fixture.class}[#{@current_record}] #{method.to_s}()"
+            end
+            describe test_description do
               it "should not throw an exception" do
                 lambda{raise error_message}.should_not raise_error
               end
