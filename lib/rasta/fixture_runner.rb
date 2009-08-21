@@ -78,26 +78,34 @@ module Rasta
     
     #TODO: work out way to specify which formatters you want to include
     def start_rspec
-      require 'spec/runner/formatter/progress_bar_formatter' 
-      require 'rasta/formatter/spreadsheet_formatter'
       Spec::Runner.options.backtrace_tweaker = Spec::Runner::NoisyBacktraceTweaker.new
-      @options[:formatters] ||= {
-        'ProgressBarFormatter' => nil,
-        'SpreadsheetFormatter' => 'spreadsheet.xml'
-      }
-      # TODO: Spec::Runner.options.parse_format("Formatter::")  if @options[:formatters].has_key?('CIREPORTER') 
-      @options[:formatters].each_key do |key|
-        if @options[:formatters][key]
-          path = ':' + File.join(@options[:results_path], @options[:formatters][key])
-        else
-          path = ''
+      @options[:formatters] ||= ['ProgressBarFormatter', 'SpreadsheetFormatter']
+      @options[:formatters].each do |formatter|
+        if formatter == 'SpreadsheetFormatter'
+          require 'rasta/formatter/spreadsheet_formatter'
+          Spec::Runner.options.parse_format("Formatter::SpreadsheetFormatter:#{@options[:results_path]}/spreadsheet.xml")
+          Spec::Runner.options.reporter.initialize_spreadsheet
+        elsif formatter == 'ProgressBarFormatter'
+          require "spec/runner/formatter/progress_bar_formatter"
+          Spec::Runner.options.parse_format("Formatter::ProgressBarFormatter")
+        else  
+          require "spec/runner/formatter/#{underscore(formatter)}"
+          path = File.join(@options[:results_path], underscore(formatter))
+          Spec::Runner.options.parse_format("Formatter::#{formatter}:#{path}")
         end
-        Spec::Runner.options.parse_format("Formatter::#{key}#{path}")
-        Spec::Runner.options.reporter.initialize_spreadsheet if key == 'SpreadsheetFormatter'
       end
     end
     private :start_rspec
    
+    def underscore(camel_cased_word)
+      camel_cased_word.to_s.gsub(/::/, '/').
+      gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
+      gsub(/([a-z\d])([A-Z])/,'\1_\2').
+      tr("-", "_").
+      downcase
+    end
+    private :underscore
+    
     def run_test_fixtures
       @options[:spreadsheets].each do |spreadsheet| 
         roo = Roo::Spreadsheet.open(spreadsheet)

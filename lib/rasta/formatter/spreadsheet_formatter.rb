@@ -5,7 +5,7 @@
 # need to parse for spreadsheet name if Google
 
 Resource_dir = File.join(File.dirname(__FILE__), '..', 'resources')
-require 'spec/runner/formatter/base_formatter'
+require 'spec/runner/formatter/base_text_formatter'
 require 'xml'
 require 'xslt'
 
