@@ -42,16 +42,16 @@ end
 Spec::Rake::SpecTask.new('test') do |t|
   t.libs << File.join(File.dirname(__FILE__), 'lib')
   t.spec_files = FileList['spec/*_spec.rb']
+  t.rcov = true
+  t.rcov_opts << '--exclude Library,examples,sandbox'
 end
 
-Spec::Rake::SpecTask.new(:rcov) do |t|
-  t.spec_files = FileList['spec/**/*.rb']
-  t.libs << File.join(File.dirname(__FILE__), 'lib')
-  t.rcov = true
-  t.rcov_dir = RCOV_DIR
-  t.rcov_opts << '--text-report'
-  t.rcov_opts << '--exclude spec'
-end
+# Spec::Rake::SpecTask.new(:rcov) do |t|
+#   t.spec_files = FileList['spec/**/*.rb']
+#   t.libs << File.join(File.dirname(__FILE__), 'lib')
+#   t.rcov_dir = RCOV_DIR
+#   t.rcov_opts << '--text-report'
+# end
 
 task :default => :test
 
