@@ -73,12 +73,6 @@ module Roo
       end
     end
     
-    def to_h
-      result = {}
-      @header.each {|h| result[h] = self[h] }
-      result 
-    end
-    
     def to_a
       result = []
       @record_cells.each {|c| result << c.value }
@@ -119,12 +113,6 @@ module Roo
     def to_a
       result = []
       self.each { |record| result << record.to_a }
-      result
-    end
-    
-    def to_h
-      result = []
-      self.each { |record| result << record.to_h }
       result
     end
     
