@@ -12,12 +12,21 @@ describe 'Class Loader' do
     @loader.load_test_fixtures 
     @loader.required_files.should == [File.join(Test::Fixture_dir, 'TestFixture.rb')]
   end
+  it 'should throw error when fixture does not exist' do
+    @loader = Rasta::ClassLoader.new(File.join(Test::Fixture_dir, 'file-does-not-exist'))
+    lambda{@loader.load_test_fixtures}.should raise_error(IOError)
+  end
+  it 'should throw error when requested class does not exist' do
+    @loader = Rasta::ClassLoader.new(File.join(Test::Fixture_dir, 'TestFixture.rb'))
+    @loader.load_test_fixtures 
+    lambda{@loader.find_class_by_name('bogus_class')}.should raise_error(LoadError)
+  end
 end
 
 describe 'Fixture Runnner' do
+
   before :all do
     @results_dir = File.join(Dir.tmpdir, 'rasta_test_results')
-    @runner = Rasta::FixtureRunner.new(:results_path=>@results_dir)
   end
   
   before :each do
@@ -29,9 +38,9 @@ describe 'Fixture Runnner' do
   end
 
   it 'should create a results directory if one does not exist' do
+    @runner = Rasta::FixtureRunner.new(:results_path=>@results_dir)
     @runner.prepare_results_directory
     File.directory?(@results_dir).should be_true
-    
   end
 
 end
