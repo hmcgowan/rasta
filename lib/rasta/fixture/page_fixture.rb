@@ -1,11 +1,10 @@
-require 'rasta/fixture/rasta_fixture'
-require 'rasta/fixture/rspec_helpers'
+require 'rasta/fixture/abstract_fixture'
 
 # Store the whole worksheet page in a single hash
 module Rasta
   module Fixture
     module RastaPageFixture
-      include RastaFixture
+      include Rasta::Fixture::AbstractFixture
       attr_accessor :rasta
       
       def before_each_record(sheet)
