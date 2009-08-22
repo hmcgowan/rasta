@@ -5,7 +5,7 @@ require 'logrotate'
 require 'roo'
 require 'rasta/extensions/rspec_extensions'
 require 'rasta/extensions/roo_extensions'
-require 'rasta/fixture/metrics'
+require 'rasta/metrics'
 
 module Rasta
   class ClassLoader

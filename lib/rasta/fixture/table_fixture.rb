@@ -1,6 +1,6 @@
 require 'spec'
 require 'rasta/fixture/classic_fixture'
-require 'rasta/fixture/rspec_helpers'
+require 'rasta/metrics'
 
 module Rasta
   module Fixture

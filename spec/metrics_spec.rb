@@ -1,5 +1,5 @@
 require File.join(File.dirname(__FILE__), 'spec_helper')
-require 'rasta/fixture/metrics'
+require 'rasta/metrics'
 
 describe 'Metrics' do
   before :all do

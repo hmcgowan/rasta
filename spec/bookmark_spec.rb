@@ -4,7 +4,7 @@ testfile = File.join(Test::Spreadsheet_dir, 'spreadsheet_parsing.xls')
 
 require 'roo'
 require 'rasta/extensions/roo_extensions'
-require 'rasta/fixture/bookmark'
+require 'rasta/fixture/classic_fixture'
 
 describe 'Bookmarks without commandline options' do
   before :all do

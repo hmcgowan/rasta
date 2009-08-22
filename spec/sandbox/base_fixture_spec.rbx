@@ -5,7 +5,7 @@ require 'spec/spec_helper'
 
 require 'lib/rasta'
 
-require TOPDIR + '/lib/rasta/fixture/base_fixture'
+require TOPDIR + '/lib/rasta/fixture/abstract_fixture'
 describe "Metrics" do
   it "should increment :attribute_count" do
     m = Rasta::Fixture::AbstractFixture::Metrics.new

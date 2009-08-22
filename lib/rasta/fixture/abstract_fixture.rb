@@ -1,5 +1,5 @@
-require 'rasta/fixture/bookmark'
-require 'rasta/fixture/rspec_helpers'
+require 'rasta/bookmark'
+require 'rasta/rspec_helpers'
 
 module Rasta
   module Fixture
