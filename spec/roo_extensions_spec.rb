@@ -104,11 +104,13 @@ describe 'Small datasets' do
     @oo.default_sheet = 'single_cell_col'
     @oo.records.header.should == ['number']
     @oo.records[2].to_a.should == [1]
+    @oo.records[2][0].name.should == 'A2'
   end
   it 'should be able to parse a sheet with a single row record' do
     @oo.default_sheet = 'single_cell_row'
     @oo.records.header.should == ['number']
     @oo.records[2].to_a.should == [1]
+    @oo.records[2][0].name.should == 'B1'
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'

@@ -146,8 +146,7 @@ module Roo
       idx = @header.first_record - 1
       record_values.each do |val|
         val = val.to_datatype if val.class == String
-        name = nil
-        if @type == :row
+        if @header.type == :row
           name = GenericSpreadsheet.number_to_letter(idx) + x.to_s
           hdr = @header.values[idx-1]
         else
@@ -159,8 +158,8 @@ module Roo
       end
       cells
     end
-    
   end 
+  
   class RecordHeader
     attr_accessor :first_record, :last_record, :index, :values, :type
     def initialize(oo)
