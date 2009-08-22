@@ -86,76 +86,6 @@ module Roo
     end
   end
   
-  class RecordHeader
-    attr_accessor :first_record, :last_record, :index, :values, :type
-    def initialize(oo)
-      @oo = oo
-      locate
-    end
-    
-    # Find the header by scanning the spreadsheet and
-    # testing each cell until we've found the header
-    def locate
-      return if (@oo.default_sheet == @current_sheet) 
-      @values = nil
-      @current_sheet = @oo.default_sheet
-      if @oo.last_row && @oo.last_column
-        (1..@oo.last_row).each do |row|
-          (1..@oo.last_column).each do |col|
-            next if @oo.empty?(row,col)
-            return if found_header?(row,col)
-          end     
-        end
-      end
-      raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @values
-    end    
-    
-    def found_header?(row, col)
-      return true if @values
-
-      # The headers are determined by the cell's font being bold
-      if @oo.font(row,col).bold?
-
-        # See if this is a column format where the values
-        # for each record correspond to spreadsheet rows
-        #   *header*, *header*
-        #   value, value
-        #   value, value
-        # 
-        # We check this by testing to see if this is the last column (single column in the table)
-        # or if the cell to the right is bold (multiple columns in the table)
-        if  (@oo.last_column == col) || (@oo.cell(row, col+1) && @oo.font(row, col+1).bold?)
-          read_header(:row, row)
-        end
-
-        # See if this is a row format where the values
-        # for each record correspond to spreadsheet columns
-        #   *header*, value, value
-        #   *header*, value, value
-        # 
-        # We check this by testing to see if this is the last row (single row in the table)
-        # or if the cell below is bold (multiple rows in the table)
-        if (@oo.last_row == row) || (@oo.cell(row+1, col) && @oo.font(row+1, col).bold?)
-          read_header(:column, col)
-          return true
-        end
-
-      end
-      return false
-    end
-    
-    # Get the header values and set the first and last record indexes
-    def read_header(type, index)
-      @type = type
-      @values = @oo.send(@type, index)
-      @values.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
-      @values.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
-      @first_record = index + 1
-      @index = index
-      @last_record = @oo.send("last_" + @type.to_s)
-    end
-  end
-  
   class Records
     
     def initialize(oo, sheet)
@@ -233,5 +163,74 @@ module Roo
       cells
     end
     
-  end  
+  end 
+  class RecordHeader
+    attr_accessor :first_record, :last_record, :index, :values, :type
+    def initialize(oo)
+      @oo = oo
+      locate
+    end
+    
+    # Find the header by scanning the spreadsheet and
+    # testing each cell until we've found the header
+    def locate
+      return if (@oo.default_sheet == @current_sheet) 
+      @values = nil
+      @current_sheet = @oo.default_sheet
+      if @oo.last_row && @oo.last_column
+        (1..@oo.last_row).each do |row|
+          (1..@oo.last_column).each do |col|
+            next if @oo.empty?(row,col)
+            return if found_header?(row,col)
+          end     
+        end
+      end
+      raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @values
+    end    
+    
+    def found_header?(row, col)
+      return true if @values
+
+      # The headers are determined by the cell's font being bold
+      if @oo.font(row,col).bold?
+
+        # See if this is a column format where the values
+        # for each record correspond to spreadsheet rows
+        #   *header*, *header*
+        #   value, value
+        #   value, value
+        # 
+        # We check this by testing to see if this is the last column (single column in the table)
+        # or if the cell to the right is bold (multiple columns in the table)
+        if  (@oo.last_column == col) || (@oo.cell(row, col+1) && @oo.font(row, col+1).bold?)
+          read_header(:row, row)
+        end
+
+        # See if this is a row format where the values
+        # for each record correspond to spreadsheet columns
+        #   *header*, value, value
+        #   *header*, value, value
+        # 
+        # We check this by testing to see if this is the last row (single row in the table)
+        # or if the cell below is bold (multiple rows in the table)
+        if (@oo.last_row == row) || (@oo.cell(row+1, col) && @oo.font(row+1, col).bold?)
+          read_header(:column, col)
+          return true
+        end
+
+      end
+      return false
+    end
+    
+    # Get the header values and set the first and last record indexes
+    def read_header(type, index)
+      @type = type
+      @values = @oo.send(@type, index)
+      @values.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
+      @values.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
+      @first_record = index + 1
+      @index = index
+      @last_record = @oo.send("last_" + @type.to_s)
+    end
+  end   
 end
