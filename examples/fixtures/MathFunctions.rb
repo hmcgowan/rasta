@@ -1,7 +1,7 @@
-require 'rasta/fixture/rasta_fixture'
+require 'rasta/fixture/classic_fixture'
 
 class MathFunctions 
-  include Rasta::Fixture::RastaFixture
+  include Rasta::Fixture::RastaClassicFixture
   attr_accessor :x, :y
   def add
     x+y

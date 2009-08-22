@@ -1,7 +1,7 @@
-require 'rasta/fixture/rasta_fixture'
+require 'rasta/fixture/classic_fixture'
 
 class StringFunctions 
-  include Rasta::Fixture::RastaFixture
+  include Rasta::Fixture::RastaClassicFixture
   attr_accessor :phrase, :searchterm
   def chop
     phrase.chop

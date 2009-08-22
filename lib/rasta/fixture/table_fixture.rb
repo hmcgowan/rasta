@@ -1,5 +1,5 @@
 require 'spec'
-require 'rasta/fixture/rasta_fixture'
+require 'rasta/fixture/classic_fixture'
 require 'rasta/fixture/rspec_helpers'
 
 module Rasta
