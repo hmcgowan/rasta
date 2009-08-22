@@ -4,12 +4,6 @@ module Rasta
   module Fixture
     module AbstractFixture
        
-      def initialize_fixture(roo_reference, bookmark)
-        @oo = roo_reference
-        @metrics = Rasta::Fixture::Metrics.new
-        @bookmark = bookmark
-      end
-      
       def execute_worksheet
         return unless @bookmark.found_page?(@oo.default_sheet)
         @metrics.reset_page_counts
@@ -32,6 +26,14 @@ module Rasta
         after_each_worksheet(@oo.default_sheet)
       end
       
+      private 
+
+      def initialize_fixture(roo_reference, bookmark)
+        @oo = roo_reference
+        @metrics = Rasta::Fixture::Metrics.new
+        @bookmark = bookmark
+      end
+
       def execute_record(record)
         record.each do |cell|
           before_each_cell(cell)
