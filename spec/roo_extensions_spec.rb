@@ -86,6 +86,10 @@ describe 'Get record values' do
     @oo.default_sheet = 'row_flush'
     @oo.records[2].to_a.should == [1.0, 2.0]
   end
+  it 'should throw an exceptions when an out of range request is made' do
+    @oo.default_sheet = 'row_flush'
+    lambda{@oo.records[2]['GG']}.should raise_error(Roo::RecordRangeError)
+  end
 end
 
 describe 'Header index' do
