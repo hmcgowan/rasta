@@ -26,7 +26,7 @@ module Rasta
         after_each_worksheet(@oo.default_sheet)
       end
       
-      private 
+    private 
 
       def initialize_fixture(roo_reference, bookmark)
         @oo = roo_reference
