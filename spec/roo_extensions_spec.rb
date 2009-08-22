@@ -88,6 +88,15 @@ describe 'Get record values' do
   end
 end
 
+describe 'Header index' do
+  it_should_behave_like 'spreadsheet'
+  
+  it 'should be accessibl' do
+    @oo.default_sheet = 'col_flush'
+    @oo.records.header_index.should == 1
+  end
+end
+
 describe 'Small datasets' do
   it_should_behave_like 'spreadsheet'
   

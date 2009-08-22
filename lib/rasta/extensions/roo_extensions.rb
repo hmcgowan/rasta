@@ -95,15 +95,12 @@ module Roo
       @header = RecordHeader.new(@oo)
     end
     
-    def type
-      @header.type
-    end
-
+    def type; @header.type; end
     def header; @header.values; end
+    def header_index; @header.index; end
     def first_record; @header.first_record; end
     def last_record; @header.last_record; end
     
-
     def each(&block)
       (@header.first_record..@header.last_record).each do |index|
         yield self[index]
