@@ -87,31 +87,35 @@ module Roo
       result 
     end
     
-    def create_record(record_index)
-      @header.type == :row ? record_type = :column : record_type = :row 
-      first_record_index = @oo.send('first_' + record_type.to_s)
-      last_record_index = @oo.send('last_' + record_type.to_s)
-      (first_record_index..last_record_index).each do |cell_index|
-        if record_type == :row
-          v = cell_value(cell_index, record_index)
-          name = cell_name(cell_index, record_index)
-        else
-          v = cell_value(record_index, cell_index)
-          name = cell_name(record_index, cell_index)
-        end
-        v = v.to_datatype if String === v
-        hdr = @header.values[cell_index-1]
-        @cells << RecordCell.new(name, v, hdr)
-      end
-    end    
-
     def cell_value(row, col)
-       @oo.font(row,col).italic? ? nil : @oo.cell(row,col)
+       if @oo.font(row,col).italic?
+         value = nil
+       else 
+         value = @oo.cell(row,col)
+         value = value.to_datatype if String === value
+       end
+       value
     end    
     
     def cell_name(row, col)
        GenericSpreadsheet.number_to_letter(col) + row.to_s
     end
+    
+    def create_record(idx)
+      @header.type == :row ? record_type = :column : record_type = :row 
+      first_record_index = @oo.send('first_' + record_type.to_s)
+      last_record_index = @oo.send('last_' + record_type.to_s)
+      (first_record_index..last_record_index).each do |cell_index|
+        if record_type == :row
+          v = cell_value(cell_index, idx)
+          name = cell_name(cell_index, idx)
+        else
+          v = cell_value(idx, cell_index)
+          name = cell_name(idx, cell_index)
+        end
+        @cells << RecordCell.new(name, v,  @header.values[cell_index-1])
+      end
+    end    
   end
   
   class Records
