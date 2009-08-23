@@ -88,7 +88,7 @@ describe 'Get record values' do
   end
   it 'should throw an exceptions when an out of range request is made' do
     @oo.default_sheet = 'row_flush'
-    lambda{@oo.records[0]['GG']}.should raise_error(Roo::RecordRangeError)
+    lambda{@oo.records[0]['GG']}.should raise_error(RangeError)
   end
 end
 
@@ -118,7 +118,7 @@ describe 'Small datasets' do
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'
-    lambda{ @oo.records[3] }.should raise_error(Roo::RecordParseError)
+    lambda{ @oo.records[3] }.should raise_error(RangeError)
   end
 end
 

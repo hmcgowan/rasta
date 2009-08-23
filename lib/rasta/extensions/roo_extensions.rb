@@ -37,7 +37,6 @@ end
 module Roo
   
   class RecordParseError < RuntimeError; end
-  class RecordRangeError < RangeError; end
 
   class RecordCell
     attr_accessor :name, :value, :header
@@ -72,13 +71,16 @@ module Roo
   end
   
   class Record
-    attr_accessor :cells, :header, :name
+    attr_accessor :cells, :header, :name, :type
 
     def initialize(index, oo, header)
       @cells = []
       @name = index
-      @header = header
       @oo = oo
+      @header = header
+      @header.type == :row ? @type = :column : @type = :row 
+      @first_cell = @oo.send('first_' + @type.to_s)
+      @last_cell = @oo.send('last_' + @type.to_s)
       create_record(index)
     end
     
@@ -93,7 +95,7 @@ module Roo
         begin
           @cells[@header.values.index(x)]
         rescue TypeError
-          raise RecordRangeError, "No header value exists for: #{x}"
+          raise RangeError, "No header value exists for: #{x}"
         end
       when Integer  
         @cells[x]
@@ -107,11 +109,8 @@ module Roo
     end
     
     def create_record(idx)
-      @header.type == :row ? record_type = :column : record_type = :row 
-      first_record_index = @oo.send('first_' + record_type.to_s)
-      last_record_index = @oo.send('last_' + record_type.to_s)
-      (first_record_index..last_record_index).each do |cell_index|
-        if record_type == :row
+      (@first_cell..@last_cell).each do |cell_index|
+        if @type == :row
           row = cell_index
           col = idx
         else
@@ -143,7 +142,7 @@ module Roo
     end
 
     def [](x)
-      raise RecordParseError, "Record #{x} out of range" unless @records[x]
+      raise RangeError, "Record #{x} out of range" unless @records[x]
       @records[x]
     end
     
