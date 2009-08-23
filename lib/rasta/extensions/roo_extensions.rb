@@ -130,6 +130,7 @@ module Roo
       @type = nil
       @record_list = []
       @header = RecordHeader.new(@oo)
+      @type = record_type
       @records = []
       read_records
     end
@@ -154,13 +155,11 @@ module Roo
     end
     
     def read_records
-      (@header.first_record..@header.last_record).each { |index| @records << Record.new(record_type, index, @oo, @header) }
+      (@header.first_record..@header.last_record).each { |index| @records << Record.new(@type, index, @oo, @header) }
     end
     
     def record_type
-      return @type if @type
-      @header.type == :row ? @type=:column : @type=:row 
-      @type
+      @header.type == :row ? :column : :row 
     end
   end 
   
