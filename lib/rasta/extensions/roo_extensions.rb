@@ -127,8 +127,6 @@ module Roo
     def type; @header.type; end
     def header; @header.values; end
     def header_index; @header.index; end
-    def first_record; @header.first_record; end    # shouldn't need these, just iterate over records!
-    def last_record; @header.last_record; end
     
     def each(&block)
       @records.each { |x| yield x }
