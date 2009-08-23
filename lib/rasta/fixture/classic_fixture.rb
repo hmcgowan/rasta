@@ -2,7 +2,7 @@ require 'rasta/fixture/abstract_fixture'
 
 module Rasta
   module Fixture
-    module RastaClassicFixture 
+    module ClassicFixture 
       include Rasta::Fixture::AbstractFixture
       attr_accessor :pending, :description, :comment
 

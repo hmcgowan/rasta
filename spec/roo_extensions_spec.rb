@@ -80,15 +80,15 @@ describe 'Get record values' do
   
   it 'should be able to parse a col record' do
     @oo.default_sheet = 'col_flush'
-    @oo.records[2].to_a.should == [1.0, 2.0]
+    @oo.records[0].to_a.should == [1.0, 2.0]
   end
   it 'should be able to parse a row record' do
     @oo.default_sheet = 'row_flush'
-    @oo.records[2].to_a.should == [1.0, 2.0]
+    @oo.records[0].to_a.should == [1.0, 2.0]
   end
   it 'should throw an exceptions when an out of range request is made' do
     @oo.default_sheet = 'row_flush'
-    lambda{@oo.records[2]['GG']}.should raise_error(Roo::RecordRangeError)
+    lambda{@oo.records[0]['GG']}.should raise_error(Roo::RecordRangeError)
   end
 end
 
@@ -107,14 +107,14 @@ describe 'Small datasets' do
   it 'should be able to parse a sheet with a single col record' do
     @oo.default_sheet = 'single_cell_col'
     @oo.records.header.should == ['number']
-    @oo.records[2].to_a.should == [1]
-    @oo.records[2][0].name.should == 'A2'
+    @oo.records[0].to_a.should == [1]
+    @oo.records[0][0].name.should == 'A2'
   end
   it 'should be able to parse a sheet with a single row record' do
     @oo.default_sheet = 'single_cell_row'
     @oo.records.header.should == ['number']
-    @oo.records[2].to_a.should == [1]
-    @oo.records[2][0].name.should == 'B1'
+    @oo.records[0].to_a.should == [1]
+    @oo.records[0][0].name.should == 'B1'
   end
   it 'should raise an exception if the row/col does not exist' do
     @oo.default_sheet = 'single_cell_row'
@@ -204,15 +204,15 @@ describe 'Postprocess data types' do
   end
   
   it 'should convert email addresses but not other strings' do 
-    @oo.records('datatypes')[2]['some_values'].value.should == 'email_prefix+somebody@foo.com'
+    @oo.records('datatypes')[0]['some_values'].value.should == 'email_prefix+somebody@foo.com'
   end
   
   it 'should not affect other strings' do 
-    @oo.records('datatypes')[4]['some_values'].value.should == 'This is a string'
+    @oo.records('datatypes')[2]['some_values'].value.should == 'This is a string'
   end
 
   it 'should convert floats to ints' do 
-    @oo.records('datatypes')[3]['some_values'].value.should == 1
+    @oo.records('datatypes')[1]['some_values'].value.should == 1
   end
   
   after :all do
@@ -224,8 +224,8 @@ describe 'Cells that are italicized should be ignored as comments' do
   it_should_behave_like 'spreadsheet'
   
   it 'should ignore cells with an italic font' do
-    @oo.records('fonts')[2]['bold'].value.should == 'first'
-    @oo.records('fonts')[3]['bold'].value.should be_nil
-    @oo.records('fonts')[4]['bold'].value.should == 'second'
+    @oo.records('fonts')[0]['bold'].value.should == 'first'
+    @oo.records('fonts')[1]['bold'].value.should be_nil
+    @oo.records('fonts')[2]['bold'].value.should == 'second'
   end
 end

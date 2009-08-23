@@ -12,7 +12,7 @@ fixture_path = File.join(Test::Root_dir, 'examples', 'fixtures')
 module Rasta
   module Fixture
     module RastaTestFixture
-      include RastaPageFixture
+      include PageFixture
       
       class << self
         def rasta_metrics; @@rasta_metrics; end

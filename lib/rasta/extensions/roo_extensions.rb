@@ -53,10 +53,18 @@ module Roo
   end
   
   class Record
-    attr_accessor :record_cells, :header, :name
+    attr_accessor :cells, :header, :name
 
+    def initialize(index, oo, header)
+      @cells = []
+      @name = index
+      @header = header
+      @oo = oo
+      create_record(index)
+    end
+    
     def each
-      @record_cells.each { |cell| yield cell }
+      @cells.each { |x| yield x }
     end 
     
     # return the cell value at a given header
@@ -64,20 +72,45 @@ module Roo
       case x
       when String
         begin
-          @record_cells[@header.index(x)]
+          @cells[@header.values.index(x)]
         rescue TypeError
           raise RecordRangeError, "No header value exists for: #{x}"
         end
       when Integer  
-        @record_cells[x]
+        @cells[x]
       end
     end
     
     def to_a
       result = []
-      @record_cells.each {|c| result << c.value }
+      @cells.each {|c| result << c.value }
       result 
     end
+    
+    def create_record(record_index)
+      @header.type == :row ? record_type = :column : record_type = :row 
+      first_header_index = @oo.send('first_' + @header.type.to_s)
+      last_header_index = @oo.send('last_' + @header.type.to_s)
+      first_record_index = @oo.send('first_' + record_type.to_s)
+      last_record_index = @oo.send('last_' + record_type.to_s)
+      cells = []
+      (first_record_index..last_record_index).each do |cell_index|
+        if record_type == :row
+          v = cell_value(cell_index, record_index)
+          name = GenericSpreadsheet.number_to_letter(record_index) + cell_index.to_s
+        else
+          v = cell_value(record_index, cell_index)
+          name = GenericSpreadsheet.number_to_letter(cell_index) + record_index.to_s
+        end
+        v = v.to_datatype if String === v
+        hdr = @header.values[cell_index-1]
+        @cells << RecordCell.new(name, v, hdr)
+      end
+    end    
+
+    def cell_value(row, col)
+       @oo.font(row,col).italic? ? nil : @oo.cell(row,col)
+    end    
   end
   
   class Records
@@ -87,65 +120,36 @@ module Roo
       @oo.default_sheet = sheet if sheet
       @record_list = []
       @header = RecordHeader.new(@oo)
+      @records = []
+      read_records
     end
     
     def type; @header.type; end
     def header; @header.values; end
     def header_index; @header.index; end
-    def first_record; @header.first_record; end
+    def first_record; @header.first_record; end    # shouldn't need these, just iterate over records!
     def last_record; @header.last_record; end
     
     def each(&block)
-      (@header.first_record..@header.last_record).each do |index|
-        yield self[index]
-      end
+      @records.each { |x| yield x }
     end
 
     def [](x)
-      return @record_list[x] if @record_list[x]
-      @record_list[x] = Record.new
-      @record_list[x].header = @header.values
-      @record_list[x].record_cells = record_cells(x)
-      @record_list[x].name = x
-      @record_list[x]
+      raise RecordParseError, "Record #{x} out of range" unless @records[x]
+      @records[x]
     end
     
     def to_a
       result = []
-      self.each { |record| result << record.to_a }
+      @records.each { |x| result << x.to_a }
       result
     end
     
-    def record_cells(x)
-      record_values = []
-      case @header.type
-      when :row
-        raise RecordParseError, "Record out of range. #{x} not in #{@oo.first_column}..#{@oo.last_column}" unless (@oo.first_row..@oo.last_row) === x
-        (@oo.first_column..@oo.last_column).each do |col|
-          record_values << (@oo.font(x,col).italic? ? nil : @oo.cell(x,col))  
-        end
-      when :column
-        raise RecordParseError, "Record out of range. #{x} not in #{@oo.first_column}..#{@oo.last_column}" unless (@oo.first_column..@oo.last_column) === x
-        (@oo.first_row..@oo.last_row).each do |row|
-          record_values << (@oo.font(row,x).italic? ? nil :  @oo.cell(row, x) )
-        end
-      end
-      cells = []
-      idx = @header.first_record - 1
-      record_values.each do |val|
-        val = val.to_datatype if val.class == String
-        if @header.type == :row
-          name = GenericSpreadsheet.number_to_letter(idx) + x.to_s
-          hdr = @header.values[idx-1]
-        else
-          name = GenericSpreadsheet.number_to_letter(x) + idx.to_s
-          hdr = @header.values[idx-1]
-        end
-        cells << RecordCell.new(name, val, hdr)
-        idx += 1
-      end
-      cells
+    def read_records
+      (@header.first_record..@header.last_record).each { |index| @records << Record.new(index, @oo, @header) }
     end
+    
+  
   end 
   
   class RecordHeader

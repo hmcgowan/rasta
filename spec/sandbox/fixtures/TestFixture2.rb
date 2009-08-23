@@ -1,7 +1,7 @@
 require 'lib/rasta/fixture/classic_fixture'
 
 class FixtureC
-  include Rasta::Fixture::RastaClassicFixture
+  include Rasta::Fixture::ClassicFixture
   attr_accessor :a, :b
   def show_attributes
     [a,b]
@@ -9,7 +9,7 @@ class FixtureC
 end
 
 class FixtureD
-  include Rasta::Fixture::RastaClassicFixture
+  include Rasta::Fixture::ClassicFixture
   attr_accessor :a, :b
   def show_attributes
     [a,b]

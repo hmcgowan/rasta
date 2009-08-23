@@ -3,7 +3,7 @@ require 'rasta/fixture/abstract_fixture'
 # Store the whole worksheet page in a single hash
 module Rasta
   module Fixture
-    module RastaPageFixture
+    module PageFixture
       include Rasta::Fixture::AbstractFixture
       attr_accessor :rasta
       
