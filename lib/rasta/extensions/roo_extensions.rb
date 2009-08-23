@@ -73,12 +73,12 @@ module Roo
   class Record
     attr_accessor :cells, :header, :name, :type
 
-    def initialize(index, oo, header)
+    def initialize(type, index, oo, header)
       @cells = []
+      @type = type
       @name = index
       @oo = oo
       @header = header
-      @header.type == :row ? @type = :column : @type = :row 
       @first_cell = @oo.send('first_' + @type.to_s)
       @last_cell = @oo.send('last_' + @type.to_s)
       create_record(index)
@@ -127,6 +127,7 @@ module Roo
     def initialize(oo, sheet)
       @oo = oo
       @oo.default_sheet = sheet if sheet
+      @type = nil
       @record_list = []
       @header = RecordHeader.new(@oo)
       @records = []
@@ -153,7 +154,13 @@ module Roo
     end
     
     def read_records
-      (@header.first_record..@header.last_record).each { |index| @records << Record.new(index, @oo, @header) }
+      (@header.first_record..@header.last_record).each { |index| @records << Record.new(record_type, index, @oo, @header) }
+    end
+    
+    def record_type
+      return @type if @type
+      @header.type == :row ? @type=:column : @type=:row 
+      @type
     end
   end 
   
