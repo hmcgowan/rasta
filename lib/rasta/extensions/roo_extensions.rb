@@ -89,8 +89,6 @@ module Roo
     
     def create_record(record_index)
       @header.type == :row ? record_type = :column : record_type = :row 
-      first_header_index = @oo.send('first_' + @header.type.to_s)
-      last_header_index = @oo.send('last_' + @header.type.to_s)
       first_record_index = @oo.send('first_' + record_type.to_s)
       last_record_index = @oo.send('last_' + record_type.to_s)
       cells = []
@@ -146,8 +144,6 @@ module Roo
     def read_records
       (@header.first_record..@header.last_record).each { |index| @records << Record.new(index, @oo, @header) }
     end
-    
-  
   end 
   
   class RecordHeader
