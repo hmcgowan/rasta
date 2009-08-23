@@ -41,15 +41,34 @@ module Roo
 
   class RecordCell
     attr_accessor :name, :value, :header
-    def initialize(name, value, header)
-      @name = name
-      @value = value.postprocess
+
+    def initialize(row, col, oo, header)
+      @oo = oo
       @header = header
+      @name = cell_name(row, col)
+      @value = cell_value(row, col)
     end
     
     def empty?
       (value.nil? || value == '' || header.nil? || header == '') ? true : false
     end
+    
+  private
+  
+    def cell_value(row, col)
+      if @oo.font(row,col).italic?
+        value = nil
+      else 
+        value = @oo.cell(row,col)
+        value = value.to_datatype if String === value 
+      end
+      value.postprocess 
+    end    
+    
+    def cell_name(row, col)
+      GenericSpreadsheet.number_to_letter(col) + row.to_s
+    end
+    
   end
   
   class Record
@@ -87,33 +106,19 @@ module Roo
       result 
     end
     
-    def cell_value(row, col)
-       if @oo.font(row,col).italic?
-         value = nil
-       else 
-         value = @oo.cell(row,col)
-         value = value.to_datatype if String === value
-       end
-       value
-    end    
-    
-    def cell_name(row, col)
-       GenericSpreadsheet.number_to_letter(col) + row.to_s
-    end
-    
     def create_record(idx)
       @header.type == :row ? record_type = :column : record_type = :row 
       first_record_index = @oo.send('first_' + record_type.to_s)
       last_record_index = @oo.send('last_' + record_type.to_s)
       (first_record_index..last_record_index).each do |cell_index|
         if record_type == :row
-          v = cell_value(cell_index, idx)
-          name = cell_name(cell_index, idx)
+          row = cell_index
+          col = idx
         else
-          v = cell_value(idx, cell_index)
-          name = cell_name(idx, cell_index)
+          row = idx
+          col = cell_index
         end
-        @cells << RecordCell.new(name, v,  @header.values[cell_index-1])
+        @cells << RecordCell.new(row, col, @oo,  @header.values[cell_index-1])
       end
     end    
   end
