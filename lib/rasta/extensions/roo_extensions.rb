@@ -166,7 +166,7 @@ module Roo
       @header.type == :row ? :column : :row 
     end
   end 
-  
+
   class RecordHeader
     attr_accessor :first_record, :last_record, :index, :values, :type
     def initialize(oo)
@@ -182,16 +182,21 @@ module Roo
       return if (@oo.default_sheet == @current_sheet) 
       @values = nil
       @current_sheet = @oo.default_sheet
-      if @oo.last_row && @oo.last_column
-        (1..@oo.last_row).each do |row|
-          (1..@oo.last_column).each do |col|
-            next if @oo.empty?(row,col)
-            return if found_header?(row,col)
-          end     
-        end
+      each_cell do |row, col|
+        next if @oo.empty?(row,col)
+        return if found_header?(row,col)
       end
       raise RecordParseError, "Unable to locate header row for #{@oo.default_sheet}" unless @values
     end    
+    
+    def each_cell
+      return unless (@oo.last_row && @oo.last_column)
+      (1..@oo.last_row).each do |row|
+        (1..@oo.last_column).each do |col|
+          yield row, col
+        end     
+      end
+    end
     
     def found_header?(row, col)
       return true if @values
