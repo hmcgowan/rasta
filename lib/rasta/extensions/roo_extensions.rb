@@ -91,14 +91,13 @@ module Roo
       @header.type == :row ? record_type = :column : record_type = :row 
       first_record_index = @oo.send('first_' + record_type.to_s)
       last_record_index = @oo.send('last_' + record_type.to_s)
-      cells = []
       (first_record_index..last_record_index).each do |cell_index|
         if record_type == :row
           v = cell_value(cell_index, record_index)
-          name = GenericSpreadsheet.number_to_letter(record_index) + cell_index.to_s
+          name = cell_name(cell_index, record_index)
         else
           v = cell_value(record_index, cell_index)
-          name = GenericSpreadsheet.number_to_letter(cell_index) + record_index.to_s
+          name = cell_name(record_index, cell_index)
         end
         v = v.to_datatype if String === v
         hdr = @header.values[cell_index-1]
@@ -109,6 +108,10 @@ module Roo
     def cell_value(row, col)
        @oo.font(row,col).italic? ? nil : @oo.cell(row,col)
     end    
+    
+    def cell_name(row, col)
+       GenericSpreadsheet.number_to_letter(col) + row.to_s
+    end
   end
   
   class Records
