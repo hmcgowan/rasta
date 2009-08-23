@@ -52,7 +52,7 @@ module Roo
       (value.nil? || value == '' || header.nil? || header == '') ? true : false
     end
     
-  private
+    private
   
     def cell_value(row, col)
       if @oo.font(row,col).italic?
@@ -108,6 +108,8 @@ module Roo
       result 
     end
     
+    private 
+    
     def create_record(idx)
       (@first_cell..@last_cell).each do |cell_index|
         if @type == :row
@@ -153,7 +155,9 @@ module Roo
       @records.each { |x| result << x.to_a }
       result
     end
-    
+
+    private 
+      
     def read_records
       (@header.first_record..@header.last_record).each { |index| @records << Record.new(@type, index, @oo, @header) }
     end
@@ -169,6 +173,8 @@ module Roo
       @oo = oo
       locate
     end
+    
+    private
     
     # Find the header by scanning the spreadsheet and
     # testing each cell until we've found the header
