@@ -46,7 +46,7 @@ module Spec
           @doc.find_first('/spreadsheet')
         end
         
-        def add_node(name, value=nil, attrs={})
+        def node(name, value=nil, attrs={})
           node = XML::Node.new(name)
           attrs.each_pair { |k,v| node[k.to_s] = v}
           node << value if value
@@ -122,7 +122,7 @@ module Spec
            status = exception?(failure) ? 'exception' : 'failed'
            @xml.result['class']  = 'result'
            @xml.result['status'] = status
-           @xml.result << @xml.add_node('detail', failure_exception(failure))
+           @xml.result << @xml.node('detail', failure_exception(failure))
            message = failure_exception(failure) if failure
            update_test_summary(example, status, :message=>message, :failure=>failure)
            @xml.save
@@ -142,18 +142,18 @@ module Spec
         
         # Update the totals on the Summary tab
         def dump_summary(duration, example_count, failure_count, pending_count)
-          @xml.summary_totals << @xml.add_node('duration', duration)
-          @xml.summary_totals << @xml.add_node('tests', example_count)
-          @xml.summary_totals << @xml.add_node('failures', failure_count)
-          @xml.summary_totals << @xml.add_node('pending', pending_count)
+          @xml.summary_totals << @xml.node('duration', duration)
+          @xml.summary_totals << @xml.node('tests', example_count)
+          @xml.summary_totals << @xml.node('failures', failure_count)
+          @xml.summary_totals << @xml.node('pending', pending_count)
           @xml.save
         end
 
         def update_test_summary(example, classname, opts={})
-          @xml.summary << summary_item = @xml.add_node('item', nil, :class=>classname) 
-          summary_item << @xml.add_node('title', "#{@record}: #{example.description}")
+          @xml.summary << summary_item = @xml.node('item', nil, :class=>classname) 
+          summary_item << @xml.node('title', "#{@record}: #{example.description}")
           if opts[:message]
-            summary_item << @xml.add_node('description', opts[:message].strip)
+            summary_item << @xml.node('description', opts[:message].strip)
             summary_item << code_snippet(opts[:failure]) if exception?(opts[:failure])
           end  
         end
@@ -163,13 +163,13 @@ module Spec
           return unless failure.exception.backtrace && failure.exception.backtrace != []
           @snippet_extractor ||= SnippetExtractor.new
           (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0]) 
-          node = @xml.add_node('exception')
+          node = @xml.node('exception')
           raw_code.split("\n").each_with_index do |line, l|
             value = "#{l + linenum - 2}: " + line.strip
             if l == 2
-              node << @xml.add_node('line', value, :class=>'offending')
+              node << @xml.node('line', value, :class=>'offending')
             else
-              node << @xml.add_node('line', value, :class=>'linenum')
+              node << @xml.node('line', value, :class=>'linenum')
             end
           end
           node
@@ -186,7 +186,7 @@ module Spec
 
 
         def table_cell(value, attributes)
-          @xml.add_node('cell', nil, attributes) << @xml.add_node('value', value)
+          @xml.node('cell', nil, attributes) << @xml.node('value', value)
         end
         
         def add_xml_worksheets
@@ -194,53 +194,64 @@ module Spec
           @oo.sheets.each do |sheet|
             @oo.default_sheet = sheet
             next unless @oo.first_column(sheet) #skip empty worksheets
-            add_xml_worksheet
+            @xml.spreadsheet << worksheet(sheet)
           end
           @oo.default_sheet = current_sheet
         end
         
-        def add_xml_worksheet
-          sheet_name = @oo.default_sheet
-          linenumber = @oo.first_row(sheet_name) 
-          @xml.spreadsheet << xml_sheet = @xml.add_node('sheet', nil, :id=>sheet_name)
-          add_xml_before_after_placeholders(xml_sheet)
-          add_xml_worksheet_column_header(xml_sheet)
-          @oo.first_row.upto(@oo.last_row) do |row_name|
-            xml_sheet << xml_row = @xml.add_node('row', nil)
-            xml_row << table_cell(linenumber.to_s, :class=>'row-index')
-            linenumber += 1
-            add_xml_worksheet_cell_values(xml_row, row_name)
+        def worksheet(sheet)
+          line_number = @oo.first_row(sheet) 
+          node = @xml.node('sheet', nil, :id=>sheet)
+          node << before_after_cells
+          node << column_header
+          each_row do |row|
+            node <<  worksheet_cells(row, line_number)
+            line_number += 1
           end
+          node
         end
 
-        def add_xml_before_after_placeholders(xml_sheet)
+        def before_after_cells
           sheet_name = @oo.default_sheet
-          xml_sheet << xml_row = XML::Node.new('setup')
-          xml_row << table_cell('before_all', :id=>'before_all', :status=>'not_run')
-          xml_row << table_cell('after_all', :id=>'after_all', :status=>'not_run')
+          node = @xml.node('setup')
+          node << table_cell('before_all', :id=>'before_all', :status=>'not_run')
+          node << table_cell('after_all', :id=>'after_all', :status=>'not_run')
+          node
         end
 
-        def add_xml_worksheet_cell_values(xml_row, row_name)
+        def worksheet_cells(name, line)
           sheet_name = @oo.default_sheet
           records = @oo.records(sheet_name)
-          @oo.first_column(sheet_name).upto(@oo.last_column(sheet_name)) do |col_name|
-            cell_value = @oo.cell(row_name,col_name).to_s
-            if (records.type == :column && col_name == records.header_index) || records.type == :row && row_name == records.header_index
-              xml_row << table_cell(@oo.cell(row_name,col_name).to_s, :class=>'header')
+          node = @xml.node('row')
+          node << table_cell(line.to_s, :class=>'row-index')
+          each_column do |col_name|
+            cell_value = @oo.cell(name,col_name).to_s
+            if (records.type == :column && col_name == records.header_index) || records.type == :row && name == records.header_index
+              node << table_cell(@oo.cell(name,col_name).to_s, :class=>'header')
             else
-              id = "#{GenericSpreadsheet.number_to_letter(col_name)}#{row_name}"
-              xml_row << table_cell(cell_value, :id=>id, :status=>'not_run')
+              id = "#{GenericSpreadsheet.number_to_letter(col_name)}#{name}"
+              node << table_cell(cell_value, :id=>id, :status=>'not_run')
             end
           end
+          node
         end
                 
-        def add_xml_worksheet_column_header(xml_sheet)
+        def column_header
           sheet_name = @oo.default_sheet
-          xml_sheet << xml_row = XML::Node.new('row')
-          xml_row << XML::Node.new('cell')
-          (@oo.first_column(sheet_name)..@oo.last_column(sheet_name)).each do |col|
-            xml_row << table_cell( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
+          node = @xml.node('row')
+          node << @xml.node('cell')
+          each_column do |col|
+            node << table_cell( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
           end
+          node
+        end
+        
+        def each_column
+          (@oo.first_column..@oo.last_column).each { |col| yield col }
+        end
+
+        def each_row
+          (@oo.first_row..@oo.last_row).each { |row| yield row }
         end
         
       end        
