@@ -140,9 +140,8 @@ module Rasta
           end
           fixture = @test_fixture
           describe test_description do
-            include TestCaseHelperMethods
             it "should not throw an exception" do
-              rspec_test_case
+               lambda{ fixture.send method }.should_not raise_error
             end
           end
           run_rspec_test
