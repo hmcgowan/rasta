@@ -3,6 +3,9 @@ require 'rasta/fixture/classic_fixture'
 class MathFunctions 
   include Rasta::Fixture::ClassicFixture
   attr_accessor :x, :y
+  def before_all
+    raise
+end
   def add
     x+y
   end

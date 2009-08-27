@@ -13,6 +13,7 @@ module Rasta
       
       def execute_worksheet
         return unless @bookmark.found_page?(@oo.default_sheet)
+        return if @bookmark.exceeded_max_records?
         @metrics.reset_page_counts
         @test_fixture = self.dup 
         send_record_to_spreadsheet_formatter('before_all')
@@ -132,25 +133,18 @@ module Rasta
       # throws an exception, create an rspec test. 
       def try(method)
         if @test_fixture.methods.include?(method.to_s)
-          begin
-            @test_fixture.send method
-          rescue SystemExit
-            exit
-          rescue => error_message
-            # If the method gets an error, re-raise the error
-            # in the context of rspec so the results pick it up
-            if @current_record.methods.include?('name')
-              test_description = "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()"
-            else
-              test_description = "#{@test_fixture.class}[#{@current_record}] #{method.to_s}()"
-            end
-            describe test_description do
-              it "should not throw an exception" do
-                lambda{raise error_message}.should_not raise_error
-              end
-            end
-            run_rspec_test
+          if @current_record.methods.include?('name')
+            test_description = "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()"
+          else
+            test_description = "#{@test_fixture.class}[#{@current_record}] #{method.to_s}()"
           end
+          fixture = @test_fixture
+          describe test_description do
+            it "should not throw an exception" do
+              lambda{fixture.send method}.should_not raise_error
+            end
+          end
+          run_rspec_test
         end  
       end
       

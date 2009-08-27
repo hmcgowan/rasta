@@ -16,6 +16,9 @@ module Rasta
         @rasta[cell.header.intern] = cell.value
       end
       
+      def pending
+        @rasta[:pending]
+      end
     end 
   end  
 end

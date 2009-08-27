@@ -67,6 +67,7 @@ module Spec
 
         def example_failed(example, counter, failure)
            xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
+puts @record, @sheet, @cell
            xml_cell['class'] = 'result'
            xml_cell['status'] = failure_type(failure)
            add_test_detail(xml_cell, failure_message(failure))
@@ -173,6 +174,7 @@ module Spec
           xml_spreadsheet = @doc.find_first('/spreadsheet')
           xml_spreadsheet << xml_sheet = XML::Node.new('sheet')
           xml_sheet['id'] = sheet_name
+          add_xml_before_after_placeholders(xml_sheet)
           add_xml_worksheet_column_header(xml_sheet)
           @oo.first_row.upto(@oo.last_row) do |row_name|
             xml_sheet << xml_row = XML::Node.new('row')
@@ -183,6 +185,21 @@ module Spec
             linenumber += 1
             add_xml_worksheet_cell_values(xml_row, row_name)
           end
+        end
+
+        def add_xml_before_after_placeholders(xml_sheet)
+          sheet_name = @oo.default_sheet
+          xml_sheet << xml_row = XML::Node.new('setup')
+          xml_row << xml_cell = XML::Node.new('cell')
+          xml_cell['id'] = 'before_all'
+          xml_cell['status'] = 'not_run'
+          xml_cell << xml_value = XML::Node.new('value')
+          xml_value << 'Before All'
+          xml_row << xml_cell = XML::Node.new('cell')
+          xml_cell['id'] = 'after_all'
+          xml_cell['status'] = 'not_run'
+          xml_cell << xml_value = XML::Node.new('value')
+          xml_value << 'After All'
         end
 
         def add_xml_worksheet_cell_values(xml_row, row_name)

@@ -7,11 +7,33 @@
       <xsl:attribute name="id"><xsl:value-of select="@id"/></xsl:attribute>
       <xsl:attribute name="title"><xsl:value-of select="@id"/></xsl:attribute>
 	  <table border="0" cellspacing="1" cellpadding="5">
+	    <xsl:for-each select="setup">
+	      <tr>
+	        <xsl:for-each select="cell">
+              <td>
+	            <!-- add class information for css -->	
+  		        <xsl:attribute name="class">
+				  <xsl:choose>
+				  <xsl:when test="@status"><xsl:value-of select="@status"/></xsl:when>
+				  <xsl:otherwise><xsl:value-of select="@class"/></xsl:otherwise>
+				  </xsl:choose>
+			    </xsl:attribute>
+	  		    <xsl:attribute name="align">center</xsl:attribute>
+				<xsl:value-of select="value"/>
+	            <!-- add tool-tip for failures -->	
+	            <xsl:for-each select="detail">
+		          <span><pre> <xsl:value-of select="."/> </pre></span>
+	            </xsl:for-each>
+	          </td>
+	        </xsl:for-each> 
+		  </tr>
+        </xsl:for-each> 
+      </table>
+	  <table border="0" cellspacing="1" cellpadding="5">
 	    <xsl:for-each select="row">
 	      <tr>
 	        <xsl:for-each select="cell">
               <td>
-	
 	            <!-- add class information for css -->	
   		        <xsl:attribute name="class">
 				  <xsl:choose>
