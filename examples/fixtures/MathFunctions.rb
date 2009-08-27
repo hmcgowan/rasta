@@ -4,7 +4,7 @@ class MathFunctions
   include Rasta::Fixture::ClassicFixture
   attr_accessor :x, :y
   def before_all
-    raise
+    raise RuntimeError
 end
   def add
     x+y

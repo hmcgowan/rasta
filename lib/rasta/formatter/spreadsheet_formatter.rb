@@ -12,14 +12,85 @@ require 'xslt'
 module Spec
   module Runner
     module Formatter
+      
+      class SpreadsheetXML
+        attr_accessor :sheet, :cell, :spreadsheet
+        
+        def initialize
+          LibXML::XML.indent_tree_output = true
+          LibXML::XML.default_tree_indent_string = '  '
+        end
+        
+        def header
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet><summary filename=\"#{@spreadsheet}\"><totals></totals></summary></spreadsheet>"
+        end
+        
+        def read(file)
+          @filename = file.path
+          @doc = LibXML::XML::Parser.file(@filename).parse
+        end
+          
+        def result
+          @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
+        end
+
+        def summary
+          @doc.find_first("/spreadsheet/summary")
+        end  
+        
+        def summary_totals
+          @doc.find_first("/spreadsheet/summary/totals")
+        end
+        
+        def spreadsheet
+          @doc.find_first('/spreadsheet')
+        end
+        
+        def add_node(name, value=nil, attrs={})
+          node = XML::Node.new(name)
+          attrs.each_pair { |k,v| node[k.to_s] = v}
+          node << value if value
+          node
+        end
+        
+        def xsl_transform
+          stylesheet_doc = XML::Document.file(File.join(Resource_dir, 'spreadsheet.xsl'))
+          stylesheet = LibXSLT::XSLT::Stylesheet.new(stylesheet_doc)
+          stylesheet.apply(@doc, {:root => "ROOT", :back => "BACK"})
+        end
+        
+        def save
+          @doc.save(@filename, :indent => true, :encoding => XML::Encoding::UTF_8)
+        end
+        
+        def save_transform(file)
+          @filename = file
+          @doc = XML::Parser.document(xsl_transform).parse
+          save
+        end
+
+      end
+      
       class SpreadsheetFormatter <  Spec::Runner::Formatter::BaseTextFormatter
         attr_accessor :oo, :record
         
+        def initialize(*args)
+          super
+          @xml = SpreadsheetXML.new
+        end
+
+        def oo=(x)        
+          @oo=x
+          @xml.spreadsheet = File.basename(@oo.filename)
+        end  
+
         # Store a reference to the spreadsheet record 
         # so we can update the associated cell in the output
         def record=(x)
           @record = x
           (@sheet, @cell) = @record.split('-')
+          @xml.sheet = @sheet
+          @xml.cell = @cell
         end
         
         def start(example_count)
@@ -29,135 +100,95 @@ module Spec
           @total_failed = 0
           @total_exception = 0
           @total_pending = 0
-          @output.puts xml_header
+          @output.puts @xml.header
           @output.flush
-          XML.indent_tree_output = true
-          XML.default_tree_indent_string = '  '
-          parser = XML::Parser.file(@output.path)
-          @doc = parser.parse
+          @xml.read @output
           add_xml_worksheets
-          save_xml
+          @xml.save
         end
         
         def close
-          # Create a new XSL Transform
-          stylesheet_doc = XML::Document.file(File.join(Resource_dir, 'spreadsheet.xsl'))
-          stylesheet = LibXSLT::XSLT::Stylesheet.new(stylesheet_doc)
-
-          # Transform the xml document
-          transform = stylesheet.apply(@doc, {:root => "ROOT", :back => "BACK"})
-          parser = XML::Parser.document(transform)
-          @doc = parser.parse
-          save_xml(@output.path.gsub('xml','html'))
-        end
-        
-        
-        def save_xml(filename = @output.path)
-          @doc.save(filename, :indent => true, :encoding => XML::Encoding::UTF_8)
+          @xml.save_transform @output.path.gsub('xml','html')
         end
         
         def example_passed(example)
-           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
-           xml_cell['class'] = 'result'
-           xml_cell['status'] = 'passed'
-           title = @record + ': ' + example.description
-           add_test_summary_item(title, 'passed')
-           save_xml
+           @xml.result['class']  = 'result'
+           @xml.result['status']  = 'passed'
+           update_test_summary(example, 'passed')
+           @xml.save
         end
 
         def example_failed(example, counter, failure)
-           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
-puts @record, @sheet, @cell
-           xml_cell['class'] = 'result'
-           xml_cell['status'] = failure_type(failure)
-           add_test_detail(xml_cell, failure_message(failure))
-           title = @record + ': ' + example.description
-           exception = failure if failure.exception.backtrace
-           add_test_summary_item(title, failure_type(failure), failure_message(failure), exception)
-           save_xml
+           status = exception?(failure) ? 'exception' : 'failed'
+           @xml.result['class']  = 'result'
+           @xml.result['status'] = status
+           @xml.result << @xml.add_node('detail', failure_exception(failure))
+           message = failure_exception(failure) if failure
+           update_test_summary(example, status, :message=>message, :failure=>failure)
+           @xml.save
         end
         
         def example_pending(example, message)
-           xml_cell = @doc.find_first("/spreadsheet/sheet[@id='#{@sheet}']//cell[@id='#{@cell}']")
-           xml_cell['class'] = 'result'
-           xml_cell['status'] = 'pending'
-           title = @record + ': ' + example.description
-           add_test_summary_item(title, 'pending', message)
-           save_xml
+          @xml.result['class']  = 'result'
+          @xml.result['status']  = 'pending'
+          update_test_summary(example, 'pending', :message=>message)
+          @xml.save
         end
-
+        
+        
         # Stub out these methods because we don't need them
         def dump_failure(*args); end
         def dump_pending(*args); end
         
         # Update the totals on the Summary tab
         def dump_summary(duration, example_count, failure_count, pending_count)
-          xml_totals = @doc.find_first("/spreadsheet/summary/totals")
-          xml_totals << xml_duration = XML::Node.new('duration')
-          xml_duration << duration
-          xml_totals << xml_test_count = XML::Node.new('tests')
-          xml_test_count << example_count
-          xml_totals << xml_failure_count = XML::Node.new('failures')
-          xml_failure_count << failure_count
-          xml_totals << xml_pending_count = XML::Node.new('pending')
-          xml_pending_count << pending_count
-          save_xml
+          @xml.summary_totals << @xml.add_node('duration', duration)
+          @xml.summary_totals << @xml.add_node('tests', example_count)
+          @xml.summary_totals << @xml.add_node('failures', failure_count)
+          @xml.summary_totals << @xml.add_node('pending', pending_count)
+          @xml.save
         end
 
-        def add_test_summary_item (title, classname, message=nil, failure=nil)
-          xml_summary = @doc.find_first("/spreadsheet/summary")
-          xml_summary <<  xml_item = XML::Node.new('item')
-          xml_item['class'] = classname
-          xml_item << xml_title = XML::Node.new('title')
-          xml_title << title
-          if message
-            xml_item << xml_description = XML::Node.new('description')
-            xml_description << message.strip
-            if exception?(failure)
-              xml_item << xml_exception = XML::Node.new('exception')
-              add_code_snippet(xml_exception, failure) 
-            end
+        def update_test_summary(example, classname, opts={})
+          @xml.summary << summary_item = @xml.add_node('item', nil, :class=>classname) 
+          summary_item << @xml.add_node('title', "#{@record}: #{example.description}")
+          if opts[:message]
+            summary_item << @xml.add_node('description', opts[:message].strip)
+            summary_item << code_snippet(opts[:failure]) if exception?(opts[:failure])
           end  
         end
-        
-        def add_test_detail(xml_cell, text)
-          xml_cell << xml_detail = XML::Node.new('detail')
-          xml_detail << text.strip
-        end
-          
-        def add_code_snippet(xml_exception, failure)
+       
+        def code_snippet(failure)
           require 'spec/runner/formatter/snippet_extractor'
           return unless failure.exception.backtrace && failure.exception.backtrace != []
           @snippet_extractor ||= SnippetExtractor.new
           (raw_code, linenum) = @snippet_extractor.snippet_for(failure.exception.backtrace[0]) 
+          node = @xml.add_node('exception')
           raw_code.split("\n").each_with_index do |line, l|
-            line = "#{l + linenum - 2}: " + line
-            xml_exception << xml_line = XML::Node.new('line') 
+            value = "#{l + linenum - 2}: " + line.strip
             if l == 2
-              xml_line['class'] = 'offending' 
+              node << @xml.add_node('line', value, :class=>'offending')
             else
-              xml_line['class'] = 'linenum'
+              node << @xml.add_node('line', value, :class=>'linenum')
             end
-            xml_line << line.strip
           end
+          node
         end
         
-        def failure_message(failure)
+        def failure_exception(failure)
           failure.exception.backtrace ? failure.exception.message + "\n" + failure.exception.backtrace.join("\n") : failure.exception.message 
         end
 
-        def failure_type(failure)
-          exception?(failure) ? 'exception' : 'failed'
-        end
         
         def exception?(failure)
           failure && failure.exception.backtrace && failure.exception.backtrace != []
         end
 
-        def xml_header
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?><spreadsheet><summary filename=\"#{File.basename(@oo.filename)}\"><totals></totals></summary></spreadsheet>"
-        end
 
+        def table_cell(value, attributes)
+          @xml.add_node('cell', nil, attributes) << @xml.add_node('value', value)
+        end
+        
         def add_xml_worksheets
           current_sheet = @oo.default_sheet
           @oo.sheets.each do |sheet|
@@ -171,17 +202,12 @@ puts @record, @sheet, @cell
         def add_xml_worksheet
           sheet_name = @oo.default_sheet
           linenumber = @oo.first_row(sheet_name) 
-          xml_spreadsheet = @doc.find_first('/spreadsheet')
-          xml_spreadsheet << xml_sheet = XML::Node.new('sheet')
-          xml_sheet['id'] = sheet_name
+          @xml.spreadsheet << xml_sheet = @xml.add_node('sheet', nil, :id=>sheet_name)
           add_xml_before_after_placeholders(xml_sheet)
           add_xml_worksheet_column_header(xml_sheet)
           @oo.first_row.upto(@oo.last_row) do |row_name|
-            xml_sheet << xml_row = XML::Node.new('row')
-            xml_row << xml_cell = XML::Node.new('cell')
-            xml_cell['class'] = 'row-index'
-            xml_cell << xml_value = XML::Node.new('value')
-            xml_value << linenumber.to_s
+            xml_sheet << xml_row = @xml.add_node('row', nil)
+            xml_row << table_cell(linenumber.to_s, :class=>'row-index')
             linenumber += 1
             add_xml_worksheet_cell_values(xml_row, row_name)
           end
@@ -190,32 +216,21 @@ puts @record, @sheet, @cell
         def add_xml_before_after_placeholders(xml_sheet)
           sheet_name = @oo.default_sheet
           xml_sheet << xml_row = XML::Node.new('setup')
-          xml_row << xml_cell = XML::Node.new('cell')
-          xml_cell['id'] = 'before_all'
-          xml_cell['status'] = 'not_run'
-          xml_cell << xml_value = XML::Node.new('value')
-          xml_value << 'Before All'
-          xml_row << xml_cell = XML::Node.new('cell')
-          xml_cell['id'] = 'after_all'
-          xml_cell['status'] = 'not_run'
-          xml_cell << xml_value = XML::Node.new('value')
-          xml_value << 'After All'
+          xml_row << table_cell('before_all', :id=>'before_all', :status=>'not_run')
+          xml_row << table_cell('after_all', :id=>'after_all', :status=>'not_run')
         end
 
         def add_xml_worksheet_cell_values(xml_row, row_name)
           sheet_name = @oo.default_sheet
           records = @oo.records(sheet_name)
           @oo.first_column(sheet_name).upto(@oo.last_column(sheet_name)) do |col_name|
-            xml_row << xml_cell = XML::Node.new('cell')
+            cell_value = @oo.cell(row_name,col_name).to_s
             if (records.type == :column && col_name == records.header_index) || records.type == :row && row_name == records.header_index
-              xml_cell['class'] = 'header'
+              xml_row << table_cell(@oo.cell(row_name,col_name).to_s, :class=>'header')
             else
-              xml_cell['id'] = "#{GenericSpreadsheet.number_to_letter(col_name)}#{row_name}"
-              xml_cell['status'] = 'not_run' 
+              id = "#{GenericSpreadsheet.number_to_letter(col_name)}#{row_name}"
+              xml_row << table_cell(cell_value, :id=>id, :status=>'not_run')
             end
-            xml_cell << xml_value = XML::Node.new('value')
-            val = @oo.cell(row_name,col_name).to_s
-            xml_value << val unless val == ''
           end
         end
                 
@@ -224,10 +239,7 @@ puts @record, @sheet, @cell
           xml_sheet << xml_row = XML::Node.new('row')
           xml_row << XML::Node.new('cell')
           (@oo.first_column(sheet_name)..@oo.last_column(sheet_name)).each do |col|
-            xml_row << xml_cell = XML::Node.new('cell')
-            xml_cell['class'] = 'column-index'
-            xml_cell << xml_value = XML::Node.new('value')
-            xml_value << GenericSpreadsheet.number_to_letter(col)
+            xml_row << table_cell( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
           end
         end
         
