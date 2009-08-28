@@ -53,6 +53,10 @@ module Spec
           node
         end
         
+        def cell_node(value, attributes)
+          node('cell', nil, attributes) << node('value', value)
+        end
+        
         def xsl_transform
           stylesheet_doc = XML::Document.file(File.join(Resource_dir, 'spreadsheet.xsl'))
           stylesheet = LibXSLT::XSLT::Stylesheet.new(stylesheet_doc)
@@ -79,6 +83,10 @@ module Spec
           @xml = SpreadsheetXML.new
         end
 
+        # Stub out these methods because we don't need them
+        def dump_failure(*args); end
+        def dump_pending(*args); end
+        
         def oo=(x)        
           @oo=x
           @xml.spreadsheet = File.basename(@oo.filename)
@@ -114,7 +122,7 @@ module Spec
         def example_passed(example)
            @xml.result['class']  = 'result'
            @xml.result['status']  = 'passed'
-           update_test_summary(example, 'passed')
+           @xml.summary << test_summary(example, 'passed')
            @xml.save
         end
 
@@ -122,23 +130,21 @@ module Spec
            status = exception?(failure) ? 'exception' : 'failed'
            @xml.result['class']  = 'result'
            @xml.result['status'] = status
-           @xml.result << @xml.node('detail', failure_exception(failure))
-           message = failure_exception(failure) if failure
-           update_test_summary(example, status, :message=>message, :failure=>failure)
+           @xml.result << @xml.node('detail', stack_trace(failure))
+           if failure
+             @xml.summary << test_summary(example, status, :message=>stack_trace(failure), :failure=>failure)
+           else
+             @xml.summary << test_summary(example, status)
+           end
            @xml.save
         end
         
         def example_pending(example, message)
           @xml.result['class']  = 'result'
           @xml.result['status']  = 'pending'
-          update_test_summary(example, 'pending', :message=>message)
+          @xml.summary << test_summary(example, 'pending', :message=>message)
           @xml.save
         end
-        
-        
-        # Stub out these methods because we don't need them
-        def dump_failure(*args); end
-        def dump_pending(*args); end
         
         # Update the totals on the Summary tab
         def dump_summary(duration, example_count, failure_count, pending_count)
@@ -149,13 +155,14 @@ module Spec
           @xml.save
         end
 
-        def update_test_summary(example, classname, opts={})
-          @xml.summary << summary_item = @xml.node('item', nil, :class=>classname) 
-          summary_item << @xml.node('title', "#{@record}: #{example.description}")
+        def test_summary(example, classname, opts={})
+          node = @xml.node('item', nil, :class=>classname) 
+          node << @xml.node('title', "#{@record}: #{example.description}")
           if opts[:message]
-            summary_item << @xml.node('description', opts[:message].strip)
-            summary_item << code_snippet(opts[:failure]) if exception?(opts[:failure])
+            node << @xml.node('description', opts[:message].strip)
+            node << code_snippet(opts[:failure]) if exception?(opts[:failure])
           end  
+          node
         end
        
         def code_snippet(failure)
@@ -175,19 +182,14 @@ module Spec
           node
         end
         
-        def failure_exception(failure)
+        def stack_trace(failure)
           failure.exception.backtrace ? failure.exception.message + "\n" + failure.exception.backtrace.join("\n") : failure.exception.message 
         end
-
         
         def exception?(failure)
           failure && failure.exception.backtrace && failure.exception.backtrace != []
         end
 
-
-        def table_cell(value, attributes)
-          @xml.node('cell', nil, attributes) << @xml.node('value', value)
-        end
         
         def add_xml_worksheets
           current_sheet = @oo.default_sheet
@@ -214,8 +216,8 @@ module Spec
         def before_after_cells
           sheet_name = @oo.default_sheet
           node = @xml.node('setup')
-          node << table_cell('before_all', :id=>'before_all', :status=>'not_run')
-          node << table_cell('after_all', :id=>'after_all', :status=>'not_run')
+          node << @xml.cell_node('before_all', :id=>'before_all', :status=>'not_run')
+          node << @xml.cell_node('after_all', :id=>'after_all', :status=>'not_run')
           node
         end
 
@@ -223,14 +225,14 @@ module Spec
           sheet_name = @oo.default_sheet
           records = @oo.records(sheet_name)
           node = @xml.node('row')
-          node << table_cell(line.to_s, :class=>'row-index')
+          node << @xml.cell_node(line.to_s, :class=>'row-index')
           each_column do |col_name|
             cell_value = @oo.cell(name,col_name).to_s
             if (records.type == :column && col_name == records.header_index) || records.type == :row && name == records.header_index
-              node << table_cell(@oo.cell(name,col_name).to_s, :class=>'header')
+              node << @xml.cell_node(@oo.cell(name,col_name).to_s, :class=>'header')
             else
               id = "#{GenericSpreadsheet.number_to_letter(col_name)}#{name}"
-              node << table_cell(cell_value, :id=>id, :status=>'not_run')
+              node << @xml.cell_node(cell_value, :id=>id, :status=>'not_run')
             end
           end
           node
@@ -241,7 +243,7 @@ module Spec
           node = @xml.node('row')
           node << @xml.node('cell')
           each_column do |col|
-            node << table_cell( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
+            node << @xml.cell_node( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
           end
           node
         end
