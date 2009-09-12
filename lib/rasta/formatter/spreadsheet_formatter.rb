@@ -225,7 +225,8 @@ module Spec
           sheet_name = @oo.default_sheet
           records = @oo.records(sheet_name)
           node = @xml.node('row')
-          node << @xml.cell_node(line.to_s, :class=>'row-index')
+          row_name = line.to_s
+          node << @xml.cell_node(row_name, :id=>row_name, :status=>'not_run')
           each_column do |col_name|
             cell_value = @oo.cell(name,col_name).to_s
             if (records.type == :column && col_name == records.header_index) || records.type == :row && name == records.header_index
@@ -243,7 +244,8 @@ module Spec
           node = @xml.node('row')
           node << @xml.node('cell')
           each_column do |col|
-            node << @xml.cell_node( GenericSpreadsheet.number_to_letter(col), :class=>'column-index')
+            column_name = GenericSpreadsheet.number_to_letter(col)
+            node << @xml.cell_node(column_name, :id=>column_name, :status=>'not_run')
           end
           node
         end

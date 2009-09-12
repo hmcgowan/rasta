@@ -71,17 +71,21 @@ module Roo
   end
   
   class Record
-    attr_accessor :cells, :header, :name, :type
+    attr_accessor :cells, :header, :index, :type
 
     def initialize(type, index, oo, header)
       @cells = []
       @type = type
-      @name = index
+      @index = index
       @oo = oo
       @header = header
       @first_cell = @oo.send('first_' + @type.to_s)
       @last_cell = @oo.send('last_' + @type.to_s)
       create_record(index)
+    end
+    
+    def name
+      type == :row ? @index-1 : GenericSpreadsheet.number_to_letter(@index-1)
     end
     
     def each
@@ -141,7 +145,7 @@ module Roo
     def header; @header.values; end
     def header_index; @header.index; end
     
-    def each(&block)
+    def each
       @records.each { |x| yield x }
     end
 

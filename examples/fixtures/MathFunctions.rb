@@ -5,7 +5,10 @@ class MathFunctions
   attr_accessor :x, :y
   def before_all
     raise RuntimeError
-end
+  end 
+  def before_each
+    true
+  end  
   def add
     x+y
   end

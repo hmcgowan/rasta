@@ -16,30 +16,40 @@ module Rasta
         return if @bookmark.exceeded_max_records?
         @metrics.reset_page_counts
         @test_fixture = self.dup 
-        send_record_to_spreadsheet_formatter('before_all')
         before_each_worksheet(@oo.default_sheet)
         @oo.records.each do |record|
           before_each_record(record)
           @metrics.reset_record_counts
           @current_record = record
           @test_fixture = self.dup #make a copy so the state is reset every record
-          next unless @bookmark.found_record?(record.name)
+          next unless @bookmark.found_record?(record.index)
           break if @bookmark.exceeded_max_records?
           @metrics.inc(:record_count)
           execute_record(record)
           after_each_record(record)
         end
         @test_fixture = self.dup 
-        send_record_to_spreadsheet_formatter('after_all')
         after_each_worksheet(@oo.default_sheet)
       end
       
-      def before_each_worksheet(sheet); try(:before_all); end
-      def before_each_record(record); try(:before_each); end
+      def before_each_worksheet(sheet)
+        send_record_to_spreadsheet_formatter('before_all')
+        try(:before_all)
+      end
+      def before_each_record(record)
+        send_record_to_spreadsheet_formatter(record.name)
+        try(:before_each)
+      end
       def before_each_cell(cell); end
       def after_each_cell(cell); end
-      def after_each_record(record); try(:after_each); end
-      def after_each_worksheet(sheet); try(:after_all); end
+      def after_each_record(record)
+        send_record_to_spreadsheet_formatter(record.name)
+        try(:after_each)
+      end
+      def after_each_worksheet(sheet)
+        send_record_to_spreadsheet_formatter('after_all')
+        try(:after_all)
+      end
       
     private 
       # Given a cell that is a method call
@@ -85,13 +95,31 @@ module Rasta
       def with_each_cell(cell)
         send_record_to_spreadsheet_formatter(cell.name)
         return if cell.empty?
-        if cell.header == 'pending'
+        if pending?(cell)
           @test_fixture.pending = cell.value
-        elsif self.methods.include?(cell.header + '=') 
+        elsif ruby_attribute?(cell)
           set_test_fixture_value(cell)
-        else
+        elsif ruby_method?(cell)
           call_test_fixture_method(cell)
+        else 
+          raise "Not sure how to handle cell #{cell.name} - not a method or attribute"
         end
+      end
+      
+      def ruby_method?(x)
+        self.respond_to?(x.header) 
+      end
+      
+      def ruby_attribute?(x)
+        self.respond_to?(x.header + '=') && self.respond_to?(x.header)
+      end
+      
+      def pending?(x)
+        x.header == 'pending'
+      end
+
+      def ignore?(x)
+        ['comment','description'].include?(x.header) ? true : false
       end
 
       def execute_record(record)
@@ -120,7 +148,7 @@ module Rasta
       end
       
       def send_record_to_spreadsheet_formatter(x)
-        Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x
+        Spec::Runner.options.reporter.record = @oo.default_sheet + '-' + x.to_s
       end
 
       # Allow access to the current failure count from RSpec
@@ -133,11 +161,7 @@ module Rasta
       # throws an exception, create an rspec test. 
       def try(method)
         if @test_fixture.methods.include?(method.to_s)
-          if @current_record.methods.include?('name')
-            test_description = "#{@test_fixture.class}[#{@current_record.name}] #{method.to_s}()"
-          else
-            test_description = "#{@test_fixture.class}[#{@current_record}] #{method.to_s}()"
-          end
+          test_description = "#{@test_fixture.class}#{'[' + @current_record.name + ']' if @current_record} #{method.to_s}()"
           fixture = @test_fixture
           describe test_description do
             it "should not throw an exception" do

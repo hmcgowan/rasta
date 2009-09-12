@@ -95,10 +95,26 @@ end
 describe 'Header index' do
   it_should_behave_like 'spreadsheet'
   
-  it 'should be accessibl' do
+  it 'should be accessible' do
     @oo.default_sheet = 'col_flush'
     @oo.records.header_index.should == 1
   end
+end
+
+describe 'RecordHeader' do
+  it_should_behave_like 'spreadsheet'
+
+  before :all do 
+    @oo.default_sheet = 'col_flush'
+    @record_header = Roo::RecordHeader.new(@oo)
+  end    
+
+  it 'should identify the first header' do
+    @record_header.first_record.should == 2
+  end    
+  it 'should identify the last last' do
+    @record_header.last_record.should == 7
+  end    
 end
 
 describe 'Small datasets' do
