@@ -85,7 +85,7 @@ module Roo
     end
     
     def name
-      type == :row ? @index-1 : GenericSpreadsheet.number_to_letter(@index-1)
+      type == :row ? GenericSpreadsheet.number_to_letter(@index) : @index.to_s
     end
     
     def each
