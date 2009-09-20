@@ -59,7 +59,7 @@ describe 'rasta_options', :shared => true do
   end
 end
 
-describe 'continue from bookmark' do
+describe 'bookmark from bookmark' do
   it_should_behave_like 'rasta_options'
 
   it 'Should count the correct number of records when parsing' do 
@@ -69,7 +69,7 @@ describe 'continue from bookmark' do
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 7
   end
   it 'Should be able to start from a tab' do 
-    @options.merge!(:continue=>'StringFunctions')
+    @options.merge!(:bookmark=>'StringFunctions')
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 3
@@ -83,7 +83,7 @@ describe 'continue from bookmark' do
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
   end
   it 'Should be able to do n pages from a tab' do 
-    @options.merge!(:pages=>2, :continue=>'StringFunctions')
+    @options.merge!(:pages=>2, :bookmark=>'StringFunctions')
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 3
@@ -97,52 +97,56 @@ describe 'continue from bookmark' do
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
   end
   it 'Should be able to do n records from a page' do 
-    @options.merge!(:records=>3, :continue=>'MathFunctions#pending')
+    @options.merge!(:records=>3, :bookmark=>'MathFunctions#pending')
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 3
   end
-  it 'Should be able to continue from a page row' do 
-    @options.merge!(:continue=>'MathFunctions#pending[5]')
+  it 'Should be able to bookmark from a page row' do 
+    @options.merge!(:bookmark=>'MathFunctions#pending[5]')
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 4
   end
-  it 'Should be able to continue from a page row with n records' do 
-    @options.merge!(:continue=>'MathFunctions#pending[5]', :records=>2)
+  it 'Should be able to bookmark from a page row with n records' do 
+    @options.merge!(:bookmark=>'MathFunctions#pending[5]', :records=>2)
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 2
   end
-  it 'Should be able to continue from a page row with n pages' do 
-    @options.merge!(:continue=>'MathFunctions[5]', :pages=>2)
+  it 'Should be able to bookmark from a page row with n pages' do 
+    @options.merge!(:bookmark=>'MathFunctions[5]', :pages=>2)
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 4
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 3
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
   end
-  it 'Should be able to continue from a page column' do 
-    @options.merge!(:continue=>'StringFunctions[D]')
+  it 'Should be able to bookmark from a page column' do 
+    @options.merge!(:bookmark=>'StringFunctions[D]')
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 7 
   end
-  it 'Should be able to continue from a page column with n records' do 
-    @options.merge!(:continue=>'StringFunctions[D]', :records=>3)
+  it 'Should be able to bookmark from a page column with n records' do 
+    @options.merge!(:bookmark=>'StringFunctions[D]', :records=>3)
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 2 
   end
-  it 'Should be able to continue from a page column with n pages' do 
-    @options.merge!(:continue=>'StringFunctions[D]', :pages=>1)
+  it 'Should be able to bookmark from a page column with n pages' do 
+    @options.merge!(:bookmark=>'StringFunctions[D]', :pages=>1)
     Rasta::FixtureRunner.new(@options).execute
     @test_fixture.rasta_metrics['MathFunctions'].record_count.should == 0
     @test_fixture.rasta_metrics['StringFunctions'].record_count.should == 1
     @test_fixture.rasta_metrics['MathFunctions#pending'].record_count.should == 0
+   end
+   it 'Should fail gracefully when the bookmark page is invalid' do 
+     @options.merge!(:bookmark=>'MissingPage')
+     lambda{ Rasta::FixtureRunner.new(@options).execute }.should raise_error
    end
 end    

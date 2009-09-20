@@ -108,17 +108,17 @@ module Rasta
     
     def run_test_fixtures
       @options[:spreadsheets].each do |spreadsheet| 
-        roo = Roo::Spreadsheet.open(spreadsheet)
-        Spec::Runner.options.reporter.roo = roo 
-
+        @roo = Roo::Spreadsheet.open(spreadsheet)
+        Spec::Runner.options.reporter.roo = @roo 
+        @bookmark = Rasta::Bookmark.new(@options)
+        check_for_valid_page @bookmark
         @loader = ClassLoader.new(@options[:fixture_path])
         @loader.load_test_fixtures
-        bookmark = Rasta::Bookmark.new(@options)
-        roo.sheets.each do |sheet| 
+        @roo.sheets.each do |sheet| 
           next if sheet =~ /^#/ #skip sheets that are only comments
           begin
-            roo.default_sheet = sheet
-            base_sheet_name = roo.default_sheet.gsub(/#.*/, '') 
+            @roo.default_sheet = sheet
+            base_sheet_name = @roo.default_sheet.gsub(/#.*/, '') 
             classname = @loader.find_class_by_name(base_sheet_name)
             fixture = classname.new
           rescue ArgumentError => e
@@ -127,13 +127,21 @@ module Rasta
           if @options[:extend_fixture]
             fixture.extend( @options[:extend_fixture])
           end
-          fixture.initialize_fixture(roo, bookmark)
+          fixture.initialize_fixture(@roo, @bookmark)
           fixture.execute_worksheet
         end
       end  
     end
     private :run_test_fixtures
 
+    def check_for_valid_page
+      if @bookmark.page
+        raise BookmarkError, "Unable to find worksheet: #{@bookmark.page}" unless @bookmark.exists?(@roo)
+      end
+      @bookmark
+    end
+    private :check_for_valid_page
+    
     def stop_rspec
       Spec::Runner.options.reporter.original_dump if Spec::Runner.options
       Spec::Runner.options.clear_format_options

@@ -15,8 +15,8 @@ module Rasta
       builder.add_choice(:results_path, :type=>:string, :default=>'rasta_test_results') do | command_line |
         command_line.uses_option("-r", "--results-path PATH", "Location of test results.")
       end
-      builder.add_choice(:continue, :type=>:string, :default=>nil) do | command_line |
-        command_line.uses_option("-c", "--continue BOOKMARK", "Continue spreadsheet from a give bookmark.")
+      builder.add_choice(:bookmark, :type=>:string, :default=>nil) do | command_line |
+        command_line.uses_option("-c", "--continue BOOKMARK", "Continue spreadsheet from a given bookmark.")
       end
       builder.add_choice(:pages, :type=>:integer, :default=>0) do | command_line |
         command_line.uses_option("--pages [COUNT]", "Number of pages to process.")
