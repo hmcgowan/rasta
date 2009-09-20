@@ -50,13 +50,22 @@ module Rasta
       return true if (@page_count > @max_page_count) and @max_page_count > 0
       return false
     end
+    
+    def valid_bookmark
+       /^([^\[]+)(\[(\S+)\])?/
+    end
+    
+    def column_record
+      /\A[a-z]+\Z/i 
+    end
+    
+    def row_record
+      /\A\d+\Z/ 
+    end
 
     def parse_bookmark(name)
       return [nil,nil] if name.nil?
-      valid_bookmark_format = /^([^\[]+)(\[(\S+)\])?/
-      column_record = /\A[a-z]+\Z/i 
-      row_record = /\A\d+\Z/ 
-      if name =~ valid_bookmark_format
+      if name =~ valid_bookmark
         pagename = $1
         record = $3
         case record
