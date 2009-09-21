@@ -55,7 +55,7 @@ module Roo
     private
   
     def cell_value(row, col)
-      if @oo.font(row,col).italic?
+      if @oo.cell(row,col) && @oo.font(row,col).italic?
         value = nil
       else 
         value = @oo.cell(row,col)
@@ -112,6 +112,10 @@ module Roo
       result 
     end
     
+    def empty?
+      self.to_a.compact.empty?
+    end
+    
     private 
     
     def create_record(idx)
@@ -123,7 +127,7 @@ module Roo
           row = idx
           col = cell_index
         end
-        @cells << RecordCell.new(row, col, @oo,  @header.values[cell_index-1])
+        @cells << RecordCell.new(row, col, @oo,  @header.values[cell_index])
       end
     end    
   end
@@ -163,7 +167,11 @@ module Roo
     private 
       
     def read_records
-      (@header.first_record..@header.last_record).each { |index| @records << Record.new(@type, index, @oo, @header) }
+      (@header.first_record..@header.last_record).each do |index|
+        next_record = Record.new(@type, index, @oo, @header)  
+        break if next_record.empty?
+        @records << next_record
+      end
     end
     
     def record_type

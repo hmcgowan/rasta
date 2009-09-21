@@ -143,12 +143,10 @@ describe 'Dump records' do
   it_should_behave_like 'spreadsheet'
 
   it 'should be able to get all of the records for a col record' do
-    @oo.default_sheet = 'col_flush'
-    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records('col_flush').to_a.should== [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
-    @oo.default_sheet = 'row_flush'
-    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records('row_flush').to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
 end
 
@@ -156,20 +154,22 @@ describe 'Iterate over records' do
   it_should_behave_like 'spreadsheet'
 
   it 'should be able to get all of the records for a col record' do
-    @oo.default_sheet = 'col_flush'
-    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records('col_flush').to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
   it 'should be able to get all of the records for a row record' do
-    @oo.default_sheet = 'row_flush'
-    @oo.records.to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
+    @oo.records('row_flush').to_a.should == [[1.0, 2.0], [2.0, 1.0], [3.0, 0.0], [4.0, 2.0], [5.0, 0.0], [3.0, 4.0]]
   end
 end
 
-describe 'Spreadsheet comments' do
+describe 'Handling unexpected formatting' do
   it_should_behave_like 'spreadsheet'
 
-  it 'should ignore comments' do
-    @oo.records('fonts').to_a.should == [['first'],[nil], ['second']]
+  it 'should ignore text outside the defined table' do
+    @oo.records('comments').to_a.should == [['a','b','c']]
+  end 
+
+  it 'should handle cells without font information gracefully' do
+    @oo.records('comments')[0][1].send(:cell_value,0,1).should be_nil
   end 
   
 end
