@@ -6,9 +6,6 @@ class MathFunctions
   def before_all
     raise RuntimeError
   end 
-  def before_each
-    true
-  end  
   def add
     x+y
   end

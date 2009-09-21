@@ -111,7 +111,7 @@ module Rasta
         @roo = Roo::Spreadsheet.open(spreadsheet)
         Spec::Runner.options.reporter.roo = @roo 
         @bookmark = Rasta::Bookmark.new(@options)
-        check_for_valid_page @bookmark
+        check_for_valid_page
         @loader = ClassLoader.new(@options[:fixture_path])
         @loader.load_test_fixtures
         @roo.sheets.each do |sheet| 

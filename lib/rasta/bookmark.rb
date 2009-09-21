@@ -3,29 +3,78 @@ module Rasta
   class BookmarkError < RuntimeError; end
   
   class Bookmark
-    attr_accessor :page_count, :max_page_count
-    attr_accessor :record_count, :max_record_count, :continue
+    attr_accessor :page_count, :max_page_count, :page, :record
+    attr_accessor :record_count, :max_record_count, :bookmark
 
     def initialize(options = {})
       @page_count = 0
       @record_count = 0
       @max_page_count = options[:pages] || 0
       @max_record_count = options[:records] || 0
-      @continue = options[:continue] || false
-      @found_bookmark_page = false
-      @found_bookmark_record = false
-      if @continue
-        @bookmark_page, @bookmark_record = parse_bookmark(@continue)
-        @found_bookmark_record = true unless @bookmark_record
-      else
-        @found_bookmark_page = true
-        @found_bookmark_record = true
-      end  
+      @bookmark = options[:bookmark] unless (@bookmark && @bookmark.empty?)
+      initialize_finders
+      read_bookmark if @bookmark
     end
-  
+
+    def initialize_finders
+      if @bookmark
+        @found_page = false
+        @found_record = false
+      else
+        # No bookmark exists so act as if the first page and
+        # record is the bookmark so all records are seen
+        @found_page = true
+        @found_record = true
+      end  
+    end    
+
+    def read_bookmark
+      if @bookmark =~ /^([^\[]+)(\[(\S+)\])?/
+        self.page = $1
+        self.record = $3
+      else
+        raise BookmarkError, "Invalid bookmark name '#{@bookmark}'" 
+      end
+    end
+
+    def page=(x)
+      @page = x
+    end  
+    
+    def record=(x)
+      @record = x
+      case @record
+      when bookmark_column
+        @record = GenericSpreadsheet.letter_to_number(@record)
+      when bookmark_row  
+        @record = @record.to_i
+      when nil
+        @found_record = true # no record specified, but valid bookmark
+      else
+        raise BookmarkError, "Invalid record #{x} for bookmark '#{@bookmark}'" 
+      end   
+    end
+    
+    def bookmark_column
+      /\A[a-z]+\Z/i 
+    end
+    
+    def bookmark_row
+      /\A\d+\Z/ 
+    end
+    
+    def page_name
+      @page =~ /^([^#]+)/
+      $1
+    end
+
+    def exists?(roo)
+      roo.sheets.include?(page_name)
+    end
+    
     def found_page?(page)
-      if @found_bookmark_page || page == @bookmark_page 
-        @found_bookmark_page = true
+      if @found_page || page == @page 
+        @found_page = true
         @page_count += 1 
         true
       else
@@ -34,54 +83,26 @@ module Rasta
     end
   
     def found_record?(record)
-      if @found_bookmark_record || record == @bookmark_record
-        @found_bookmark_record = true 
+      if @found_record || record == @record
+        @found_record = true 
         @record_count += 1 
         true
       else 
         false
       end
-     
     end
   
     def exceeded_max_records?
-      return false if @max_record_count == 0 and @max_page_count == 0
-      return true if (@record_count > @max_record_count) and @max_record_count > 0
-      return true if (@page_count > @max_page_count) and @max_page_count > 0
-      return false
-    end
-    
-    def valid_bookmark
-       /^([^\[]+)(\[(\S+)\])?/
-    end
-    
-    def column_record
-      /\A[a-z]+\Z/i 
-    end
-    
-    def row_record
-      /\A\d+\Z/ 
-    end
-
-    def parse_bookmark(name)
-      return [nil,nil] if name.nil?
-      if name =~ valid_bookmark
-        pagename = $1
-        record = $3
-        case record
-        when column_record
-          record = GenericSpreadsheet.letter_to_number(record)
-        when row_record  
-          record = record.to_i
-        when nil
-          # no record set, which is fine
-        else
-          raise BookmarkError, "Invalid record name for bookmark '#{name}'" 
-        end   
-        return pagename, record
-      else
-        raise BookmarkError, "Invalid bookmark name '#{name}'" 
+      if @max_record_count == 0 and @max_page_count == 0
+        false
+      elsif (@record_count > @max_record_count) and @max_record_count > 0
+        true
+      elsif (@page_count > @max_page_count) and @max_page_count > 0
+        true
+      else  
+        false
       end  
     end
+    
   end
 end
