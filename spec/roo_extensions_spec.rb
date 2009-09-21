@@ -182,10 +182,6 @@ describe 'Records should accept argument for sheet name' do
     @oo.records('single_cell_row').to_a.should == [[1.0]]
   end
   
-  it 'should allow access to single column or row' 
-  # not sure how to do this but would be nice to get a column off of a spreadsheet
-  # or the nth data row, maybe the zeroth row is always the header
-  # think a little more on it
 end
 
 describe 'Postprocess data types' do
