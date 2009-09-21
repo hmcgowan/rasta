@@ -166,7 +166,11 @@ describe 'Iterate over records' do
 end
 
 describe 'Spreadsheet comments' do
-  it 'should ignore comments'
+  it_should_behave_like 'spreadsheet'
+
+  it 'should ignore comments' do
+    @oo.records('fonts').to_a.should == [['first'],[nil], ['second']]
+  end 
   
 end
 
