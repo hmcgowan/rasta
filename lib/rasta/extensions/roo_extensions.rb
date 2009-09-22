@@ -163,6 +163,7 @@ module Roo
     def read_records
       (@header.first_record..@header.last_record).each do |index|
         next_record = Record.new(@type, index, @oo, @header)  
+        return if next_record.empty?
         @records << next_record
       end
     end
@@ -249,12 +250,20 @@ module Roo
     # Get the header values and set the first and last record indexes
     def read_header(type, index)
       @type = type
-      @values = @oo.send(@type, index)
-      @values.compact! # we'll get nil records unless the table is left/top justified. May need to be stricter
-      @values.map! { |x| x.gsub(/\(\)$/,'') } # we're stripping out () if it's used to clarify methods 
+      @values = header_values(index)
       @first_record = index + 1
       @index = index
       @last_record = @oo.send("last_" + @type.to_s)
+    end
+    
+    def header_values(index)
+      values = @oo.send(@type, index)
+      # Strip out any values after and including a nil value
+      if values.index(nil)
+        values = values[0..values.index(nil) -1]
+      end  
+      values.map! { |x| x.gsub(/\(\)$/,'') } # strip out () if it's used to clarify methods 
+      values
     end
   end   
 end

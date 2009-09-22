@@ -145,11 +145,7 @@ describe Roo::Records do
   end
 
   it 'should ignore text outside the defined table' do
-    @oo.records('boundaries').to_a.should == [['a','b','c']]
-  end 
-
-  it 'should handle cells without font information gracefully' do
-    @oo.records('boundaries')[0][1].send(:cell_value,0,1).should be_nil
+    @oo.records('empty_records').to_a.should == [['a','b']]
   end 
 
   it 'should raise an exception if the row/col does not exist' do
@@ -228,6 +224,12 @@ describe Roo::RecordHeader do
     @oo.default_sheet = 'col_flush'
     @record_header = Roo::RecordHeader.new(@oo)
     @record_header.last_record.should == 7
+  end    
+
+  it 'should stop parsing the header on a nil header value' do
+    @oo.default_sheet = 'empty_records'
+    @record_header = Roo::RecordHeader.new(@oo)
+    @record_header.values.should == ['ColA','ColB']
   end    
   
 end
