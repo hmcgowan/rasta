@@ -39,34 +39,29 @@ module Roo
   class RecordParseError < RuntimeError; end
 
   class RecordCell
-    attr_accessor :name, :value, :header
+    attr_accessor :name, :value, :raw_value, :italic
 
-    def initialize(row, col, oo, header)
+    def initialize(oo, row, col)
+      @italic = false
       @oo = oo
-      @header = header
-      @name = cell_name(row, col)
-      @value = cell_value(row, col)
+      @name = GenericSpreadsheet.number_to_letter(col) + row.to_s
+      @value = nil
+      @raw_value = @oo.cell(row,col)
+      @italic = (@raw_value && @oo.font(row,col).italic?) ? true : false
+      initialize_value
     end
     
     def empty?
-      (value.nil? || value == '' || header.nil? || header == '') ? true : false
+      (@value.nil? || @value == '' || @italic) ? true : false
     end
     
-    private
+  private
   
-    def cell_value(row, col)
-      if @oo.cell(row,col) && @oo.font(row,col).italic?
-        value = nil
-      else 
-        value = @oo.cell(row,col)
-        value = value.to_datatype if String === value 
-      end
-      value.postprocess 
+    def initialize_value
+      return if @italic
+      @value = (String === @raw_value) ? @raw_value.to_datatype : @raw_value
+      @value = @value.postprocess 
     end    
-    
-    def cell_name(row, col)
-      GenericSpreadsheet.number_to_letter(col) + row.to_s
-    end
     
   end
   
@@ -79,9 +74,7 @@ module Roo
       @index = index
       @oo = oo
       @header = header
-      @first_cell = @oo.send('first_' + @type.to_s)
-      @last_cell = @oo.send('last_' + @type.to_s)
-      create_record(index)
+      create_record
     end
     
     def name
@@ -96,13 +89,13 @@ module Roo
     def [](x)
       case x
       when String
-        begin
-          @cells[@header.values.index(x)]
-        rescue TypeError
-          raise RangeError, "No header value exists for: #{x}"
-        end
-      when Integer  
+        raise RangeError, "No header value exists for: #{x}" unless @header.include?(x)
+        @cells[@header.values.index(x)]
+      when Integer 
+        raise RangeError, "No header value exists for: #{x}" if x > @header.values.length - 1
         @cells[x]
+      else  
+        raise RangeError, "Don't know how to handle: #{x}, #{x.class}" 
       end
     end
     
@@ -113,21 +106,22 @@ module Roo
     end
     
     def empty?
-      self.to_a.compact.empty?
+      @cells.each{|x| return false unless x.empty?}
+      true
     end
     
-    private 
+  private 
     
-    def create_record(idx)
-      (@first_cell..@last_cell).each do |cell_index|
+    def create_record
+      @header.each_index do |header_index|
         if @type == :row
-          row = cell_index
-          col = idx
+          row = header_index
+          col = @index
         else
-          row = idx
-          col = cell_index
+          row = @index
+          col = header_index
         end
-        @cells << RecordCell.new(row, col, @oo,  @header.values[cell_index])
+        @cells << RecordCell.new(@oo, row, col)
       end
     end    
   end
@@ -164,12 +158,11 @@ module Roo
       result
     end
 
-    private 
+  private 
       
     def read_records
       (@header.first_record..@header.last_record).each do |index|
         next_record = Record.new(@type, index, @oo, @header)  
-        break if next_record.empty?
         @records << next_record
       end
     end
@@ -181,9 +174,18 @@ module Roo
 
   class RecordHeader
     attr_accessor :first_record, :last_record, :index, :values, :type
+    
     def initialize(oo)
       @oo = oo
       locate
+    end
+    
+    def include?(x)
+      @values.include?(x)
+    end
+    
+    def each_index
+      (@index..(@index + @values.size - 1)).each { |x| yield x}
     end
     
     private
