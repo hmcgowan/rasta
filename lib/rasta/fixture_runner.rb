@@ -12,15 +12,21 @@ module Rasta
   class ClassLoader
     attr_reader :required_files
     
-    def initialize(path)
+    def initialize(path, required_files=[])
       @@class_constants = {}
       @fixture_path = path
-      @required_files = []      
+      @required_files = required_files
+      @required_files ||= []
     end
     
     # Load the files in the fixture path and 
     # track which classes got loaded
     def load_test_fixtures
+      locate_test_fixtures if @required_files.size == 0
+      @required_files.each {|f| require f}
+    end
+
+    def locate_test_fixtures
       if File.directory?(@fixture_path)
         fixture_files = File.join(@fixture_path, "**", "*.rb")
       elsif File.exists?(File.expand_path(@fixture_path))
@@ -28,9 +34,9 @@ module Rasta
       else
         raise IOError, "Unable to locate test fixtures using #{@fixture_path}" 
       end
-      Dir.glob(fixture_files).each {|f| require f; @required_files << f}
+      @required_files = Dir.glob(fixture_files)
     end
-
+    
     # Get the reference to a class based on a string. Also 
     # check to see if it's a class that we loaded
     def find_class_by_name(classname)
@@ -113,7 +119,7 @@ module Rasta
         Spec::Runner.options.reporter.roo = @roo 
         @bookmark = Rasta::Bookmark.new(@options)
         check_for_valid_page
-        @loader = ClassLoader.new(@options[:fixture_path])
+        @loader = ClassLoader.new(@options[:fixture_path], @options[:require])
         @loader.load_test_fixtures
         @roo.sheets.each do |sheet| 
           next if sheet =~ /^#/ #skip sheets that are only comments
