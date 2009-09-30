@@ -6,6 +6,7 @@ require 'roo'
 require 'rasta/extensions/rspec_extensions'
 require 'rasta/extensions/roo_extensions'
 require 'rasta/metrics'
+require 'rasta/bookmark'
 
 module Rasta
   class ClassLoader

@@ -39,7 +39,7 @@ module Roo
   class RecordParseError < RuntimeError; end
 
   class RecordCell
-    attr_accessor :name, :value, :raw_value, :italic
+    attr_accessor :name, :value, :raw_value, :italic, :header
 
     def initialize(oo, row, col)
       @italic = false
@@ -121,7 +121,9 @@ module Roo
           row = @index
           col = header_index
         end
-        @cells << RecordCell.new(@oo, row, col)
+        cell = RecordCell.new(@oo, row, col)
+        cell.header = @header.values[header_index-1]
+        @cells << cell
       end
     end    
   end
