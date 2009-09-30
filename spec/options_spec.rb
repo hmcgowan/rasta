@@ -152,6 +152,7 @@ describe 'bookmark from bookmark' do
    it 'Should allow user to specify required files' do 
      @options.merge!(:require=>[File.join(fixture_path, 'MathFunctions'),File.join(fixture_path, 'StringFunctions')])
      @options.delete(:fixture_path)
+     puts @options.inspect
      lambda{ Rasta::FixtureRunner.new(@options).execute }.should_not raise_error
    end
 end    

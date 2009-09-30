@@ -64,7 +64,11 @@ module Rasta
       @user_choices[:spreadsheets] << @user_choices[:spreadsheet] if @user_choices[:spreadsheet] 
       @user_choices[:results_path] = File.expand_path(@user_choices[:results_path]) if @user_choices[:results_path] 
       @user_choices[:fixture_path] = File.expand_path(@user_choices[:fixture_path]) if @user_choices[:fixture_path]
-      raise ArgumentError, "argument '--fixture-path' must be specified and a valid directory" unless @user_choices[:fixture_path] && File.directory?(@user_choices[:fixture_path])
+      raise ArgumentError, "argument '--fixture-path' must be specified and a valid directory" unless fixtures_defined
+    end
+    
+    def fixtures_defined
+      (@user_choices[:fixture_path] && File.directory?(@user_choices[:fixture_path]) || @user_choices[:require])
     end
     
     # If we don't clear out ARGV, then RSPEC 
