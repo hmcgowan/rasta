@@ -59,7 +59,15 @@ module Roo
   
     def initialize_value
       return if @italic
-      @value = (String === @raw_value) ? @raw_value.to_datatype : @raw_value
+     
+      begin
+        @value = (String === @raw_value) ? @raw_value.to_datatype : @raw_value
+      rescue SyntaxError   # find out better way to handle - not trapped by rescue
+        @value = @raw_value
+      rescue
+        @value = @raw_value
+      end
+      
       @value = @value.postprocess 
     end    
     
@@ -122,7 +130,7 @@ module Roo
           col = header_index
         end
         cell = RecordCell.new(@oo, row, col)
-        cell.header = @header.values[header_index-1]
+        cell.header = @header[header_index]
         @cells << cell
       end
     end    
@@ -191,6 +199,9 @@ module Roo
       (@index..(@index + @values.size - 1)).each { |x| yield x}
     end
     
+    def [](x)
+      @values[x-@index]
+    end
     private
     
     # Find the header by scanning the spreadsheet and
@@ -260,12 +271,18 @@ module Roo
     
     def header_values(index)
       values = @oo.send(@type, index)
+      # Strip out any leading nil values
+      values.shift while (values.size > 0 && values[0] == nil)
       # Strip out any values after and including a nil value
       if values.index(nil)
         values = values[0..values.index(nil) -1]
-      end  
+      end
+      # Remove any camel-case in front of the headers (undocumented feature :) )  
+      values.shift while values[0] =~ /A-Z/ 
+      raise RecordParseError, "No header values found for sheet #{@oo.default_sheet}" unless values.size > 0
       values.map! { |x| x.gsub(/\(\)$/,'') } # strip out () if it's used to clarify methods 
       values
     end
   end   
 end
+
