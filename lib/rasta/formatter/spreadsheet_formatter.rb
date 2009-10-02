@@ -63,24 +63,14 @@ module Spec
           stylesheet.apply(@doc)
         end
         
-        def add_tabber_javascript
+        def import_html(name, type, file)
           head = @doc.find_first("//*[local-name()='head']")
-          head << tabber = XML::Node.new('script')
-          tabber['type'] = "text/javascript"
-          js = XML::Node.new_text(content = IO.readlines(File.join(File.dirname(__FILE__),'..','resources','tabber-minimized.js')).join)
-          js.output_escaping = false
-          tabber << js
-          tabber
-        end
-
-        def add_css
-          head = @doc.find_first("//*[local-name()='head']")
-          head << style = XML::Node.new('style')
-          style['type'] = "text/css"
-          css = XML::Node.new_text(content = IO.readlines(File.join(File.dirname(__FILE__),'..','resources','spreadsheet.css')).join)
-          css.output_escaping = false
-          style << css
-          style
+          head << element = XML::Node.new(name)
+          element['type'] = type
+          html = XML::Node.new_text(content = IO.readlines(File.join(File.dirname(__FILE__),'..','resources',file)).join)
+          html.output_escaping = false
+          element << html
+          element          
         end
 
         def save
@@ -90,8 +80,8 @@ module Spec
         def save_transform(file)
           @filename = file
           @doc = XML::Parser.document(xsl_transform).parse
-          add_tabber_javascript
-          add_css
+          import_html('script','text/javascript','tabber-minimized.js')
+          import_html('style','text/css','spreadsheet.css')
           save
         end
 
