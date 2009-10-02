@@ -60,9 +60,29 @@ module Spec
         def xsl_transform
           stylesheet_doc = XML::Document.file(File.join(Resource_dir, 'spreadsheet.xsl'))
           stylesheet = LibXSLT::XSLT::Stylesheet.new(stylesheet_doc)
-          stylesheet.apply(@doc, {:root => "ROOT", :back => "BACK"})
+          stylesheet.apply(@doc)
         end
         
+        def add_tabber_javascript
+          head = @doc.find_first("//*[local-name()='head']")
+          head << tabber = XML::Node.new('script')
+          tabber['type'] = "text/javascript"
+          js = XML::Node.new_text(content = IO.readlines(File.join(File.dirname(__FILE__),'..','resources','tabber-minimized.js')).join)
+          js.output_escaping = false
+          tabber << js
+          tabber
+        end
+
+        def add_css
+          head = @doc.find_first("//*[local-name()='head']")
+          head << style = XML::Node.new('style')
+          style['type'] = "text/css"
+          css = XML::Node.new_text(content = IO.readlines(File.join(File.dirname(__FILE__),'..','resources','spreadsheet.css')).join)
+          css.output_escaping = false
+          style << css
+          style
+        end
+
         def save
           @doc.save(@filename, :indent => true, :encoding => XML::Encoding::UTF_8)
         end
@@ -70,6 +90,8 @@ module Spec
         def save_transform(file)
           @filename = file
           @doc = XML::Parser.document(xsl_transform).parse
+          add_tabber_javascript
+          add_css
           save
         end
 

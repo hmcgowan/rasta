@@ -98,7 +98,6 @@
     <head>
       <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
       <title>Rasta Test Results</title>
-	  <script type="text/javascript" src="file:///Users/hugh_mcgowan/git/rasta/lib/rasta/resources/tabber-minimized.js">blank</script>
 	  <LINK type="text/css" href="file:///Users/hugh_mcgowan/git/rasta/lib/rasta/resources/spreadsheet.css" rel="stylesheet"/>
 	</head>
     <body>
