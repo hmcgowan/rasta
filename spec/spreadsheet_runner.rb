@@ -9,4 +9,8 @@ fixture_path = File.join(Root_dir, 'examples', 'fixtures')
 
 testfile = File.join(Root_dir, 'examples', 'rasta_fixture.ods')
 
-Rasta::SpreadsheetRunner.new.execute(:spreadsheet => testfile, :fixture_path => fixture_path, :results_path => '../rasta_test_results')
+
+# require the test fixtures
+Dir.glob(File.join(fixture_path, "**", "*.rb")).each {|f| require f} 
+
+Rasta::SpreadsheetRunner.new.execute(:spreadsheet => testfile, :results_path => '../rasta_test_results')

@@ -9,9 +9,6 @@ module Rasta
     end
     
     def add_choices(builder)
-      builder.add_choice(:fixture_path, :type=>:string, :default=>nil) do | command_line |
-        command_line.uses_option("-f", "--fixture-path PATH", "Location of test fixtures.")
-      end
       builder.add_choice(:results_path, :type=>:string, :default=>'rasta_test_results') do | command_line |
         command_line.uses_option("-r", "--results-path PATH", "Location of test results.")
       end
@@ -63,12 +60,6 @@ module Rasta
       end
       @user_choices[:spreadsheets] << @user_choices[:spreadsheet] if @user_choices[:spreadsheet] 
       @user_choices[:results_path] = File.expand_path(@user_choices[:results_path]) if @user_choices[:results_path] 
-      @user_choices[:fixture_path] = File.expand_path(@user_choices[:fixture_path]) if @user_choices[:fixture_path]
-      raise ArgumentError, "argument '--fixture-path' must be specified and a valid directory" unless fixtures_defined
-    end
-    
-    def fixtures_defined
-      (@user_choices[:fixture_path] && File.directory?(@user_choices[:fixture_path]) || @user_choices[:require])
     end
     
     # If we don't clear out ARGV, then RSPEC 

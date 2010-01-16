@@ -2,6 +2,8 @@ require File.join(File.dirname(__FILE__), 'spec_helper')
 
 require 'rasta/fixture_runner'
 require 'rasta/fixture/page_fixture'
+require 'examples/fixtures/MathFunctions'
+require 'examples/fixtures/StringFunctions'
 
 testfile = File.join(Test::Root_dir, 'examples', 'rasta_fixture.ods')
 fixture_path = File.join(Test::Root_dir, 'examples', 'fixtures')

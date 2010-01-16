@@ -9,53 +9,11 @@ require 'rasta/metrics'
 require 'rasta/bookmark'
 
 module Rasta
-  class ClassLoader
-    attr_reader :required_files
-    
-    def initialize(path, required_files=[])
-      @@class_constants = {}
-      @fixture_path = path
-      @required_files = required_files
-      @required_files ||= []
-    end
-    
-    # Load the files in the fixture path and 
-    # track which classes got loaded
-    def load_test_fixtures
-      locate_test_fixtures if @required_files.size == 0
-      @required_files.each {|f| require f}
-    end
-
-    def locate_test_fixtures
-      if File.directory?(@fixture_path)
-        fixture_files = File.join(@fixture_path, "**", "*.rb")
-      elsif File.exists?(File.expand_path(@fixture_path))
-        fixture_files = File.expand_path(@fixture_path)
-      else
-        raise IOError, "Unable to locate test fixtures using #{@fixture_path}" 
-      end
-      @required_files = Dir.glob(fixture_files)
-    end
-    
-    # Get the reference to a class based on a string. Also 
-    # check to see if it's a class that we loaded
-    def find_class_by_name(classname)
-      return @@class_constants[classname] if @@class_constants[classname]
-      ObjectSpace.each_object(Class) do |klass| 
-        if klass.name =~ /(^|:)#{classname}$/
-          @@class_constants[classname] = klass
-          return klass
-        end
-      end
-      raise LoadError, "Class '#{classname}' not found!"
-    end
-
-  end
-
   class FixtureRunner
         
     def initialize(opts={})
       @options = opts
+      @@class_constants = {}
     end
     
     def execute
@@ -119,14 +77,12 @@ module Rasta
         Spec::Runner.options.reporter.roo = @roo 
         @bookmark = Rasta::Bookmark.new(@options)
         check_for_valid_page
-        @loader = ClassLoader.new(@options[:fixture_path], @options[:require])
-        @loader.load_test_fixtures
         @roo.sheets.each do |sheet| 
           next if sheet =~ /^#/ #skip sheets that are only comments
           begin
             @roo.default_sheet = sheet
             base_sheet_name = @roo.default_sheet.gsub(/#.*/, '') 
-            classname = @loader.find_class_by_name(base_sheet_name)
+            classname = find_class_by_name(base_sheet_name)
             fixture = classname.new
           rescue ArgumentError => e
             raise ArgumentError, "Unable to load class #{classname}. #{e.inspect + e.backtrace.join("\n")}"
@@ -140,6 +96,18 @@ module Rasta
       end  
     end
     private :run_test_fixtures
+
+   def find_class_by_name(classname)
+      return @@class_constants[classname] if @@class_constants[classname]
+      ObjectSpace.each_object(Class) do |klass| 
+        if klass.name =~ /(^|:)#{classname}$/
+          @@class_constants[classname] = klass
+          return klass
+        end
+      end
+      raise LoadError, "Class '#{classname}' not found!"
+    end
+    private :find_class_by_name
 
     def check_for_valid_page
       if @bookmark.page
